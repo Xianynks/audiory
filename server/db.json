@@ -1,0 +1,151 @@
+{
+  "iems": [
+    {
+      "id": 1,
+      "name": "Contoh A1",
+      "brand": "Contoh Audio",
+      "driver": "1DD",
+      "image_url": "",
+      "description": "Data contoh untuk demonstrasi.",
+      "bass": "Bass hangat dan tebal.",
+      "midrange": "Vokal sedikit maju.",
+      "treble": "Treble lembut.",
+      "technicalities": "Soundstage sedang.",
+      "review": "Cocok untuk pemakaian santai.",
+      "tuning_ids": [
+        2
+      ],
+      "genre_ids": [
+        4,
+        3
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Contoh B2",
+      "brand": "Contoh Audio",
+      "driver": "1DD + 2BA",
+      "image_url": "",
+      "description": "Data contoh untuk demonstrasi.",
+      "bass": "Bass terkontrol.",
+      "midrange": "Midrange seimbang.",
+      "treble": "Treble detail.",
+      "technicalities": "Separasi instrumen baik.",
+      "review": "Serbaguna untuk banyak genre.",
+      "tuning_ids": [
+        1
+      ],
+      "genre_ids": [
+        3,
+        2,
+        5
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Contoh C3",
+      "brand": "Sampel Sound",
+      "driver": "4BA",
+      "image_url": "",
+      "description": "Data contoh untuk demonstrasi.",
+      "bass": "Bass ringan dan cepat.",
+      "midrange": "Midrange bersih.",
+      "treble": "Treble terang.",
+      "technicalities": "Imaging presisi.",
+      "review": "Cocok untuk musik akustik.",
+      "tuning_ids": [
+        3
+      ],
+      "genre_ids": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Contoh D4",
+      "brand": "Sampel Sound",
+      "driver": "1DD + 1BA",
+      "image_url": "",
+      "description": "Data contoh untuk demonstrasi.",
+      "bass": "Sub-bass dalam.",
+      "midrange": "Midrange agak mundur.",
+      "treble": "Treble berenergi.",
+      "technicalities": "Dinamika kuat.",
+      "review": "Cocok untuk musik energik.",
+      "tuning_ids": [
+        4
+      ],
+      "genre_ids": [
+        1,
+        5,
+        6
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Contoh E5",
+      "brand": "Demo Labs",
+      "driver": "2DD + 2BA",
+      "image_url": "",
+      "description": "Data contoh untuk demonstrasi.",
+      "bass": "Bass punchy.",
+      "midrange": "Midrange hangat.",
+      "treble": "Treble halus.",
+      "technicalities": "Soundstage luas.",
+      "review": "Nyaman dipakai lama.",
+      "tuning_ids": [
+        2,
+        1
+      ],
+      "genre_ids": [
+        4,
+        5
+      ]
+    }
+  ],
+  "tunings": [
+    {
+      "id": 1,
+      "name": "Neutral"
+    },
+    {
+      "id": 2,
+      "name": "Warm"
+    },
+    {
+      "id": 3,
+      "name": "Bright"
+    },
+    {
+      "id": 4,
+      "name": "V-Shaped"
+    }
+  ],
+  "genres": [
+    {
+      "id": 1,
+      "name": "Metal"
+    },
+    {
+      "id": 2,
+      "name": "Classical"
+    },
+    {
+      "id": 3,
+      "name": "Jazz"
+    },
+    {
+      "id": 4,
+      "name": "Pop"
+    },
+    {
+      "id": 5,
+      "name": "Rock"
+    },
+    {
+      "id": 6,
+      "name": "EDM"
+    }
+  ]
+}
