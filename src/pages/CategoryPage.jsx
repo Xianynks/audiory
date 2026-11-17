@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import IemCard from "../components/IemCard.jsx";
-import { categoryApi, iemApi, errorMessage } from "../api.js";
+import DacCard from "../components/DacCard.jsx";
+import { categoryApi, iemApi, dacApi, errorMessage } from "../api.js";
 
 export default function CategoryPage({ type, title }) {
   const api = categoryApi(type);
-  // field relasi pada IEM: tunings -> tuning_ids, genres -> genre_ids
+  // field relasi pada IEM/DAC: tunings -> tuning_ids, genres -> genre_ids
   const relKey = type === "tunings" ? "tuning_ids" : "genre_ids";
 
   const [categories, setCategories] = useState([]);
   const [iems, setIems] = useState([]);
+  const [dacs, setDacs] = useState([]);
   const [selected, setSelected] = useState(null);
   const [name, setName] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -16,9 +18,14 @@ export default function CategoryPage({ type, title }) {
 
   const load = useCallback(async () => {
     try {
-      const [c, i] = await Promise.all([categoryApi(type).list(), iemApi.list()]);
+      const [c, i, d] = await Promise.all([
+        categoryApi(type).list(),
+        iemApi.list(),
+        dacApi.list()
+      ]);
       setCategories(c);
       setIems(i);
+      setDacs(d);
     } catch (err) {
       setError(errorMessage(err));
     }
@@ -63,13 +70,15 @@ export default function CategoryPage({ type, title }) {
     }
   };
 
+  const uses = (item, catId) => (item[relKey] || []).includes(catId);
   const countOf = (catId) =>
-    iems.filter((i) => (i[relKey] || []).includes(catId)).length;
+    iems.filter((i) => uses(i, catId)).length +
+    dacs.filter((d) => uses(d, catId)).length;
 
-  const shown =
-    selected == null
-      ? []
-      : iems.filter((i) => (i[relKey] || []).includes(selected));
+  const shownIems = selected == null ? [] : iems.filter((i) => uses(i, selected));
+  const shownDacs = selected == null ? [] : dacs.filter((d) => uses(d, selected));
+  const tuningsProp = type === "tunings" ? categories : [];
+  const genresProp = type === "genres" ? categories : [];
 
   return (
     <section>
@@ -124,21 +133,40 @@ export default function CategoryPage({ type, title }) {
       {selected != null && (
         <>
           <h2>IEM dengan {title.toLowerCase()} ini</h2>
-          {shown.length === 0 && <p className="muted">Belum ada IEM di kategori ini.</p>}
+          {shownIems.length === 0 && (
+            <p className="muted">Belum ada IEM di kategori ini.</p>
+          )}
           <div className="grid">
-            {shown.map((iem) => (
+            {shownIems.map((iem) => (
               <IemCard
                 key={iem.id}
                 iem={iem}
-                tunings={type === "tunings" ? categories : []}
-                genres={type === "genres" ? categories : []}
+                tunings={tuningsProp}
+                genres={genresProp}
+              />
+            ))}
+          </div>
+
+          <h2>DAC dengan {title.toLowerCase()} ini</h2>
+          {shownDacs.length === 0 && (
+            <p className="muted">Belum ada DAC di kategori ini.</p>
+          )}
+          <div className="grid">
+            {shownDacs.map((dac) => (
+              <DacCard
+                key={dac.id}
+                dac={dac}
+                tunings={tuningsProp}
+                genres={genresProp}
               />
             ))}
           </div>
         </>
       )}
       {selected == null && categories.length > 0 && (
-        <p className="muted">Pilih salah satu kategori untuk melihat daftar IEM.</p>
+        <p className="muted">
+          Pilih salah satu kategori untuk melihat daftar IEM dan DAC.
+        </p>
       )}
     </section>
   );

@@ -132,15 +132,17 @@ export default function IemDetail() {
 
       <h2>Frequency Response</h2>
       {iem.fr_image_url ? (
-        <img
-          className="fr"
-          src={iem.fr_image_url}
-          alt={`Grafik frequency response ${iem.name}`}
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
-        />
+        <a href={iem.fr_image_url} target="_blank" rel="noreferrer">
+          <img
+            className="fr"
+            src={iem.fr_image_url}
+            alt={`Grafik frequency response ${iem.name}`}
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        </a>
       ) : (
         <p className="muted">Belum ada grafik frequency response.</p>
       )}
@@ -157,7 +159,7 @@ export default function IemDetail() {
       )}
 
       <h2>Review</h2>
-      <p>{iem.review || "Belum ada review."}</p>
+      <p className="prewrap">{iem.review || "Belum ada review."}</p>
 
       <div className="actions">
         <Link to={`/iem/${id}/edit`} className="btn primary">

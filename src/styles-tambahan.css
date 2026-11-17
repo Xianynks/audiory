@@ -53,3 +53,80 @@
   font-size: 0.8rem;
   padding: 14px 2px;
 }
+
+/* ===== Tambahan tahap 2: rasio gambar tetap, unggah gambar, katalog DAC ===== */
+img {
+  max-width: 100%;
+}
+
+/* Foto dengan rasio tetap berpatokan lebar (sumbu X): tinggi mengikuti lebar,
+   seluruh gambar terlihat dan tidak keluar dari layar. */
+.card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.hero {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+/* Grafik FR: lebar penuh, tinggi menyesuaikan rasio aslinya (tidak terpotong) */
+.fr {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.detail {
+  overflow-wrap: anywhere;
+}
+.prewrap {
+  white-space: pre-line;
+}
+
+.head-actions {
+  display: flex;
+  gap: 8px;
+}
+.section-gap {
+  margin-top: 32px;
+}
+
+/* Input gambar (unggah / URL) */
+.imgfield {
+  display: grid;
+  gap: 6px;
+}
+.imgprev {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.imgrow {
+  display: flex;
+  gap: 6px;
+}
+.imgrow input[type="url"] {
+  flex: 1;
+  min-width: 0;
+}
+.field-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+/* Chip pilihan jack output */
+.chip.pick.jack.on {
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-color: var(--primary);
+}

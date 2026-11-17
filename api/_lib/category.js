@@ -1,9 +1,15 @@
 import { sql } from "./db.js";
 
-// Tabel penghubung tiap kategori (nilai tetap, bukan input pengguna)
+// Tabel penghubung kategori ke IEM dan DAC (nilai tetap, bukan input pengguna)
 const REL = {
-  tunings: { table: "iem_tunings", col: "tuning_id" },
-  genres: { table: "iem_genres", col: "genre_id" }
+  tunings: [
+    { link: "iem_tunings", col: "tuning_id", fk: "iem_id", owner: "iems" },
+    { link: "dac_tunings", col: "tuning_id", fk: "dac_id", owner: "dacs" }
+  ],
+  genres: [
+    { link: "iem_genres", col: "genre_id", fk: "iem_id", owner: "iems" },
+    { link: "dac_genres", col: "genre_id", fk: "dac_id", owner: "dacs" }
+  ]
 };
 
 const fail = (res, e, label) => {
@@ -13,6 +19,23 @@ const fail = (res, e, label) => {
   console.error(e);
   return res.status(500).json({ message: "Terjadi kesalahan pada server." });
 };
+
+// Jumlah IEM dan DAC aktif (belum di sampah) yang memakai kategori ini
+async function usageCount(table, id) {
+  const counts = await Promise.all(
+    REL[table].map(async (r) => {
+      const [{ n }] = await sql.query(
+        `SELECT COUNT(*)::int AS n
+           FROM ${r.link} x
+           JOIN ${r.owner} o ON o.id = x.${r.fk}
+          WHERE x.${r.col} = $1 AND o.deleted_at IS NULL`,
+        [id]
+      );
+      return n;
+    })
+  );
+  return counts.reduce((a, b) => a + b, 0);
+}
 
 // table: "tunings" atau "genres"
 export const listHandler = (table, label) => async (req, res) => {
@@ -42,7 +65,6 @@ export const listHandler = (table, label) => async (req, res) => {
 
 export const itemHandler = (table, label) => async (req, res) => {
   const id = Number(req.query.id);
-  const rel = REL[table];
   try {
     if (req.method === "PUT") {
       const name = (req.body?.name || "").trim();
@@ -60,17 +82,10 @@ export const itemHandler = (table, label) => async (req, res) => {
     }
 
     if (req.method === "DELETE") {
-      // Tolak jika masih dipakai IEM yang aktif (belum di sampah)
-      const [{ n }] = await sql.query(
-        `SELECT COUNT(*)::int AS n
-           FROM ${rel.table} r
-           JOIN iems i ON i.id = r.iem_id
-          WHERE r.${rel.col} = $1 AND i.deleted_at IS NULL`,
-        [id]
-      );
+      const n = await usageCount(table, id);
       if (n > 0) {
         return res.status(409).json({
-          message: `${label} masih dipakai oleh ${n} IEM. Lepaskan dulu dari IEM tersebut.`
+          message: `${label} masih dipakai oleh ${n} IEM/DAC. Lepaskan dulu dari item tersebut.`
         });
       }
       // Soft delete

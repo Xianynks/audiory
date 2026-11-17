@@ -29,3 +29,12 @@ export const DAC_OPTIONS = [
 
 export const dacLabel = (value) =>
   DAC_OPTIONS.find((o) => o.value === value)?.label ?? "Tidak perlu";
+
+export const JACK_OPTIONS = [
+  { value: "3.5mm", label: "3.5mm" },
+  { value: "4.4mm", label: "4.4mm" },
+  { value: "keduanya", label: "3.5mm + 4.4mm" }
+];
+
+export const jackLabel = (value) =>
+  JACK_OPTIONS.find((o) => o.value === value)?.label ?? "-";

@@ -3,6 +3,7 @@ import { trashApi, errorMessage } from "../api.js";
 
 const SECTIONS = [
   { key: "iems", title: "IEM" },
+  { key: "dacs", title: "DAC" },
   { key: "tunings", title: "Tuning" },
   { key: "genres", title: "Genre" }
 ];
@@ -15,7 +16,7 @@ const formatDate = (d) =>
   });
 
 export default function Trash() {
-  const [data, setData] = useState({ iems: [], tunings: [], genres: [] });
+  const [data, setData] = useState({ iems: [], dacs: [], tunings: [], genres: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");

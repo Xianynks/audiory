@@ -25,15 +25,18 @@ export const COLS = [
 const PRICE_COLS = ["release_price", "market_price"];
 export const DAC_OPTIONS = ["tidak_perlu", "disarankan", "wajib"];
 
+// Harga: kosong/tidak valid -> null, selain itu bilangan bulat >= 0
+export function toPrice(v) {
+  if (v === "" || v == null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+}
+
 // Ubah isi form menjadi array parameter sesuai urutan COLS
 export function values(body) {
   return COLS.map((c) => {
     const v = body[c];
-    if (PRICE_COLS.includes(c)) {
-      if (v === "" || v == null) return null;
-      const n = Number(v);
-      return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
-    }
+    if (PRICE_COLS.includes(c)) return toPrice(v);
     if (c === "dac_need") return DAC_OPTIONS.includes(v) ? v : "tidak_perlu";
     return v ?? "";
   });

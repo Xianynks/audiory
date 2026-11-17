@@ -3,6 +3,8 @@ import BottomNav from "./components/BottomNav.jsx";
 import Catalog from "./pages/Catalog.jsx";
 import IemDetail from "./pages/IemDetail.jsx";
 import IemForm from "./pages/IemForm.jsx";
+import DacDetail from "./pages/DacDetail.jsx";
+import DacForm from "./pages/DacForm.jsx";
 import CategoryPage from "./pages/CategoryPage.jsx";
 import Trash from "./pages/Trash.jsx";
 import About from "./pages/About.jsx";
@@ -19,6 +21,9 @@ export default function App() {
           <Route path="/iem/baru" element={<IemForm />} />
           <Route path="/iem/:id" element={<IemDetail />} />
           <Route path="/iem/:id/edit" element={<IemForm />} />
+          <Route path="/dac/baru" element={<DacForm />} />
+          <Route path="/dac/:id" element={<DacDetail />} />
+          <Route path="/dac/:id/edit" element={<DacForm />} />
           <Route
             path="/tuning"
             element={<CategoryPage type="tunings" title="Tuning" />}

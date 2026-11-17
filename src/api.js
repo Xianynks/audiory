@@ -22,9 +22,18 @@ export const categoryApi = (type) => ({
   remove: (id) => api.delete(`/${type}/${id}`).then(unwrap)
 });
 
+export const dacApi = {
+  list: () => api.get("/dacs").then(unwrap),
+  get: (id) => api.get(`/dacs/${id}`).then(unwrap),
+  create: (data) => api.post("/dacs", data).then(unwrap),
+  update: (id, data) => api.put(`/dacs/${id}`, data).then(unwrap),
+  remove: (id) => api.delete(`/dacs/${id}`).then(unwrap)
+};
+
 export const trashApi = {
   list: () => api.get("/trash").then(unwrap),
-  restore: (type, id) => api.post(`/trash/${type}/${id}`).then(unwrap)
+  // type: "iems" | "dacs" | "tunings" | "genres"
+  restore: (type, id) => api.post("/trash", { type, id }).then(unwrap)
 };
 
 export const errorMessage = (err) =>

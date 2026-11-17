@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { iemApi, categoryApi, errorMessage } from "../api.js";
 import { tierOf, DAC_OPTIONS } from "../tier.js";
+import ImageField from "../components/ImageField.jsx";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
@@ -111,14 +112,18 @@ export default function IemForm() {
         {field("name", "Nama IEM", { required: true })}
         {field("brand", "Merek", { required: true })}
         {field("driver", "Konfigurasi driver (contoh: 1DD + 2BA)")}
-        {field("image_url", "URL gambar IEM", {
-          type: "url",
-          placeholder: "https://..."
-        })}
-        {field("fr_image_url", "URL gambar Frequency Response", {
-          type: "url",
-          placeholder: "https://..."
-        })}
+        <ImageField
+          label="Gambar IEM"
+          folder="iem"
+          value={form.image_url}
+          onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
+        />
+        <ImageField
+          label="Gambar Frequency Response"
+          folder="iem-fr"
+          value={form.fr_image_url}
+          onChange={(url) => setForm((f) => ({ ...f, fr_image_url: url }))}
+        />
         {area("description", "Deskripsi")}
         {area("bass", "Bass")}
         {area("midrange", "Midrange")}

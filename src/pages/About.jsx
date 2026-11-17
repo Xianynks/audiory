@@ -26,7 +26,7 @@ export default function About() {
         <dt>Teknologi</dt>
         <dd>React, Vite, Axios, PWA (JavaScript)</dd>
         <dt>Versi</dt>
-        <dd>1.0.0</dd>
+        <dd>2.1.0</dd>
       </dl>
     </section>
   );

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { iemApi, categoryApi, errorMessage } from "./api.js";
+import { iemApi, dacApi, categoryApi, errorMessage } from "./api.js";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
 
 export default function useCatalog() {
   const [iems, setIems] = useState([]);
+  const [dacs, setDacs] = useState([]);
   const [tunings, setTunings] = useState([]);
   const [genres, setGenres] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,12 +16,14 @@ export default function useCatalog() {
     setLoading(true);
     setError("");
     try {
-      const [i, t, g] = await Promise.all([
+      const [i, d, t, g] = await Promise.all([
         iemApi.list(),
+        dacApi.list(),
         tuningApi.list(),
         genreApi.list()
       ]);
       setIems(i);
+      setDacs(d);
       setTunings(t);
       setGenres(g);
     } catch (err) {
@@ -34,5 +37,5 @@ export default function useCatalog() {
     reload();
   }, [reload]);
 
-  return { iems, tunings, genres, loading, error, reload };
+  return { iems, dacs, tunings, genres, loading, error, reload };
 }

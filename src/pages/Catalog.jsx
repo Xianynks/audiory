@@ -1,23 +1,30 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import IemCard from "../components/IemCard.jsx";
+import DacCard from "../components/DacCard.jsx";
 import useCatalog from "../useCatalog.js";
 
 export default function Catalog() {
-  const { iems, tunings, genres, loading, error, reload } = useCatalog();
+  const { iems, dacs, tunings, genres, loading, error, reload } = useCatalog();
   const [q, setQ] = useState("");
 
-  const filtered = iems.filter((i) =>
-    `${i.name} ${i.brand}`.toLowerCase().includes(q.toLowerCase())
-  );
+  const match = (x) =>
+    `${x.name} ${x.brand}`.toLowerCase().includes(q.toLowerCase());
+  const iemList = iems.filter(match);
+  const dacList = dacs.filter(match);
 
   return (
     <section>
       <div className="page-head">
         <h1>Katalog IEM</h1>
-        <Link to="/iem/baru" className="btn primary">
-          Tambah IEM
-        </Link>
+        <div className="head-actions">
+          <Link to="/dac/baru" className="btn primary">
+            Tambah DAC
+          </Link>
+          <Link to="/iem/baru" className="btn primary">
+            Tambah IEM
+          </Link>
+        </div>
       </div>
 
       <input
@@ -37,13 +44,26 @@ export default function Catalog() {
           </button>
         </div>
       )}
-      {!loading && !error && filtered.length === 0 && (
+
+      {!loading && !error && iemList.length === 0 && (
         <p className="muted">Belum ada IEM. Tambahkan IEM pertama Anda.</p>
       )}
-
       <div className="grid">
-        {filtered.map((iem) => (
+        {iemList.map((iem) => (
           <IemCard key={iem.id} iem={iem} tunings={tunings} genres={genres} />
+        ))}
+      </div>
+
+      <div className="page-head section-gap">
+        <h1>Katalog DAC</h1>
+      </div>
+
+      {!loading && !error && dacList.length === 0 && (
+        <p className="muted">Belum ada DAC.</p>
+      )}
+      <div className="grid">
+        {dacList.map((dac) => (
+          <DacCard key={dac.id} dac={dac} tunings={tunings} genres={genres} />
         ))}
       </div>
     </section>
