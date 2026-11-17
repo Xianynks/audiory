@@ -47,7 +47,12 @@ export default function CategoryPage({ type, title }) {
   };
 
   const handleDelete = async (cat) => {
-    if (!window.confirm(`Hapus kategori "${cat.name}"?`)) return;
+    if (
+      !window.confirm(
+        `Pindahkan kategori "${cat.name}" ke sampah? Data bisa dipulihkan dari menu Sampah.`
+      )
+    )
+      return;
     setError("");
     try {
       await api.remove(cat.id);

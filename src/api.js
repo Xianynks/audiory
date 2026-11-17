@@ -22,6 +22,11 @@ export const categoryApi = (type) => ({
   remove: (id) => api.delete(`/${type}/${id}`).then(unwrap)
 });
 
+export const trashApi = {
+  list: () => api.get("/trash").then(unwrap),
+  restore: (type, id) => api.post(`/trash/${type}/${id}`).then(unwrap)
+};
+
 export const errorMessage = (err) =>
   err?.response?.data?.message || err?.message || "Terjadi kesalahan.";
 

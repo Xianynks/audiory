@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { iemApi, categoryApi, errorMessage, FALLBACK_IMG } from "../api.js";
+import { tierOf, rupiah, dacLabel } from "../tier.js";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
@@ -24,7 +25,8 @@ export default function IemDetail() {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!window.confirm(`Hapus "${iem.name}"?`)) return;
+    if (!window.confirm(`Pindahkan "${iem.name}" ke sampah? Data bisa dipulihkan dari menu Sampah.`))
+      return;
     try {
       await iemApi.remove(id);
       navigate("/");
@@ -47,6 +49,12 @@ export default function IemDetail() {
 
   const tuningList = tunings.filter((t) => (iem.tuning_ids || []).includes(t.id));
   const genreList = genres.filter((g) => (iem.genre_ids || []).includes(g.id));
+  const releaseTier = tierOf(iem.release_price);
+  const marketTier = tierOf(iem.market_price);
+  const packageItems = (iem.package_contents || "")
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   return (
     <section className="detail">
@@ -84,6 +92,32 @@ export default function IemDetail() {
 
       <p>{iem.description}</p>
 
+      <h2>Harga dan kelas</h2>
+      <dl>
+        <dt>Harga rilis</dt>
+        <dd>
+          {rupiah(iem.release_price)}
+          {releaseTier && <span className="badge">{releaseTier}</span>}
+        </dd>
+        <dt>Harga pasaran sekarang</dt>
+        <dd>
+          {rupiah(iem.market_price)}
+          {marketTier && <span className="badge">{marketTier}</span>}
+        </dd>
+      </dl>
+
+      <h2>Spesifikasi</h2>
+      <dl>
+        <dt>Sensitivitas</dt>
+        <dd>{iem.sensitivity || "-"}</dd>
+        <dt>Kebutuhan DAC/amp</dt>
+        <dd>
+          <span className={"chip dac on dac-" + iem.dac_need}>
+            {dacLabel(iem.dac_need)}
+          </span>
+        </dd>
+      </dl>
+
       <h2>Karakteristik suara</h2>
       <dl>
         <dt>Bass</dt>
@@ -95,6 +129,32 @@ export default function IemDetail() {
         <dt>Technicalities</dt>
         <dd>{iem.technicalities || "-"}</dd>
       </dl>
+
+      <h2>Frequency Response</h2>
+      {iem.fr_image_url ? (
+        <img
+          className="fr"
+          src={iem.fr_image_url}
+          alt={`Grafik frequency response ${iem.name}`}
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      ) : (
+        <p className="muted">Belum ada grafik frequency response.</p>
+      )}
+
+      <h2>Isi paket</h2>
+      {packageItems.length > 0 ? (
+        <ul className="plain">
+          {packageItems.map((item, i) => (
+            <li key={i}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="muted">Belum ada data isi paket.</p>
+      )}
 
       <h2>Review</h2>
       <p>{iem.review || "Belum ada review."}</p>

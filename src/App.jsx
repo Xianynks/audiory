@@ -4,6 +4,7 @@ import Catalog from "./pages/Catalog.jsx";
 import IemDetail from "./pages/IemDetail.jsx";
 import IemForm from "./pages/IemForm.jsx";
 import CategoryPage from "./pages/CategoryPage.jsx";
+import Trash from "./pages/Trash.jsx";
 import About from "./pages/About.jsx";
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
             path="/genre"
             element={<CategoryPage type="genres" title="Genre" />}
           />
+          <Route path="/sampah" element={<Trash />} />
           <Route path="/about" element={<About />} />
         </Routes>
       </main>

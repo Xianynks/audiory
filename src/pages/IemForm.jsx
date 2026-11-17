@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { iemApi, categoryApi, errorMessage } from "../api.js";
+import { tierOf, DAC_OPTIONS } from "../tier.js";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
@@ -10,15 +11,25 @@ const EMPTY = {
   brand: "",
   driver: "",
   image_url: "",
+  fr_image_url: "",
   description: "",
   bass: "",
   midrange: "",
   treble: "",
   technicalities: "",
   review: "",
+  release_price: "",
+  market_price: "",
+  package_contents: "",
+  sensitivity: "",
+  dac_need: "tidak_perlu",
   tuning_ids: [],
   genre_ids: []
 };
+
+// Nilai null dari database diubah jadi "" supaya input tetap terkontrol
+const fromServer = (iem) =>
+  Object.fromEntries(Object.entries(iem).map(([k, v]) => [k, v ?? ""]));
 
 export default function IemForm() {
   const { id } = useParams();
@@ -38,7 +49,7 @@ export default function IemForm() {
       .then(([t, g, iem]) => {
         setTunings(t);
         setGenres(g);
-        if (iem) setForm({ ...EMPTY, ...iem });
+        if (iem) setForm({ ...EMPTY, ...fromServer(iem) });
       })
       .catch((err) => setError(errorMessage(err)));
   }, [id, isEdit]);
@@ -77,12 +88,15 @@ export default function IemForm() {
     </label>
   );
 
-  const area = (key, label) => (
+  const area = (key, label, props = {}) => (
     <label className="field">
       <span>{label}</span>
-      <textarea rows={3} value={form[key]} onChange={setField(key)} />
+      <textarea rows={3} value={form[key]} onChange={setField(key)} {...props} />
     </label>
   );
+
+  const releaseTier = tierOf(form.release_price);
+  const marketTier = tierOf(form.market_price);
 
   return (
     <section>
@@ -97,13 +111,68 @@ export default function IemForm() {
         {field("name", "Nama IEM", { required: true })}
         {field("brand", "Merek", { required: true })}
         {field("driver", "Konfigurasi driver (contoh: 1DD + 2BA)")}
-        {field("image_url", "URL gambar", { type: "url", placeholder: "https://..." })}
+        {field("image_url", "URL gambar IEM", {
+          type: "url",
+          placeholder: "https://..."
+        })}
+        {field("fr_image_url", "URL gambar Frequency Response", {
+          type: "url",
+          placeholder: "https://..."
+        })}
         {area("description", "Deskripsi")}
         {area("bass", "Bass")}
         {area("midrange", "Midrange")}
         {area("treble", "Treble")}
         {area("technicalities", "Technicalities")}
         {area("review", "Review")}
+
+        <fieldset>
+          <legend>Harga dan kelas</legend>
+          {field("release_price", "Harga rilis (Rp)", {
+            type: "number",
+            min: 0,
+            step: 1,
+            inputMode: "numeric"
+          })}
+          <p className="muted hint">
+            Kelas saat rilis: <strong>{releaseTier || "-"}</strong>
+          </p>
+          {field("market_price", "Harga pasaran sekarang (Rp)", {
+            type: "number",
+            min: 0,
+            step: 1,
+            inputMode: "numeric"
+          })}
+          <p className="muted hint">
+            Kelas harga pasaran: <strong>{marketTier || "-"}</strong>
+          </p>
+        </fieldset>
+
+        {field("sensitivity", "Sensitivitas (contoh: 102 dB/mW)")}
+        {area("package_contents", "Isi paket penjualan (satu item per baris)", {
+          placeholder: "Earphone\nKabel\nEartips\nCarrying case"
+        })}
+
+        <fieldset>
+          <legend>Kebutuhan DAC/amp</legend>
+          <div className="chips">
+            {DAC_OPTIONS.map((o) => (
+              <button
+                type="button"
+                key={o.value}
+                className={
+                  "chip dac pick dac-" +
+                  o.value +
+                  (form.dac_need === o.value ? " on" : "")
+                }
+                aria-pressed={form.dac_need === o.value}
+                onClick={() => setForm({ ...form, dac_need: o.value })}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
 
         <fieldset>
           <legend>Tuning</legend>

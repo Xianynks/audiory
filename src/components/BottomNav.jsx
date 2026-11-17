@@ -4,6 +4,7 @@ const items = [
   { to: "/", label: "Katalog", end: true },
   { to: "/tuning", label: "Tuning" },
   { to: "/genre", label: "Genre" },
+  { to: "/sampah", label: "Sampah" },
   { to: "/about", label: "About" }
 ];
 

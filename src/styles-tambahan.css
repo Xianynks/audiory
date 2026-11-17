@@ -1,0 +1,55 @@
+
+/* ===== Tambahan: soft delete, kelas harga, DAC, FR ===== */
+.badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: #e3e7fb;
+  color: #232f86;
+}
+.hint {
+  margin: 4px 0 12px;
+  font-size: 0.9rem;
+}
+.fr {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.chip.dac {
+  background: #eceff5;
+  color: var(--ink);
+}
+.chip.dac.on,
+.chip.pick.dac.on {
+  border-color: transparent;
+  color: #fff;
+  background: var(--muted);
+}
+.chip.dac-tidak_perlu.on {
+  background: #3f7d58;
+}
+.chip.dac-disarankan.on {
+  background: #b9811a;
+}
+.chip.dac-wajib.on {
+  background: var(--danger);
+}
+.notice {
+  background: #e6f4ea;
+  border: 1px solid #b7dcc2;
+  color: #1e5a33;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.catname.static {
+  cursor: default;
+}
+.navitem {
+  font-size: 0.8rem;
+  padding: 14px 2px;
+}
