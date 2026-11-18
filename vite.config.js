@@ -7,11 +7,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,woff2}"]
+      },
       manifest: {
         name: "Audiory",
         short_name: "Audiory",
         description: "Platform informasi dan katalog perangkat audio (IEM)",
-        theme_color: "#2F3FB8",
+        theme_color: "#162E93",
         background_color: "#EEF1F6",
         display: "standalone",
         start_url: "/",
