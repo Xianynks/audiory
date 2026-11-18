@@ -3,6 +3,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { iemApi, categoryApi, errorMessage } from "../api.js";
 import { tierOf, DAC_OPTIONS } from "../tier.js";
 import ImageField from "../components/ImageField.jsx";
+import {
+  FormPanel,
+  Field,
+  Area,
+  ChoiceChips,
+  ChipPicker
+} from "../components/FormParts.jsx";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
@@ -23,6 +30,10 @@ const EMPTY = {
   market_price: "",
   package_contents: "",
   sensitivity: "",
+  impedance: "",
+  connector: "",
+  pros: "",
+  cons: "",
   dac_need: "tidak_perlu",
   tuning_ids: [],
   genre_ids: []
@@ -55,17 +66,15 @@ export default function IemForm() {
       .catch((err) => setError(errorMessage(err)));
   }, [id, isEdit]);
 
-  const setField = (key) => (e) => setForm({ ...form, [key]: e.target.value });
-
-  const toggle = (key, value) => {
-    const current = form[key];
-    setForm({
-      ...form,
-      [key]: current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value]
-    });
-  };
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const setValue = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
+  const toggle = (key) => (value) =>
+    setForm((f) => ({
+      ...f,
+      [key]: f[key].includes(value)
+        ? f[key].filter((v) => v !== value)
+        : [...f[key], value]
+    }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,149 +91,166 @@ export default function IemForm() {
     }
   };
 
-  const field = (key, label, props = {}) => (
-    <label className="field">
-      <span>{label}</span>
-      <input value={form[key]} onChange={setField(key)} {...props} />
-    </label>
-  );
-
-  const area = (key, label, props = {}) => (
-    <label className="field">
-      <span>{label}</span>
-      <textarea rows={3} value={form[key]} onChange={setField(key)} {...props} />
-    </label>
-  );
-
-  const releaseTier = tierOf(form.release_price);
-  const marketTier = tierOf(form.market_price);
+  const num = { type: "number", min: 0, step: 1, inputMode: "numeric" };
 
   return (
-    <section>
+    <div className="detail">
       <Link to={isEdit ? `/iem/${id}` : "/"} className="back">
         &larr; Batal
       </Link>
-      <h1>{isEdit ? "Edit IEM" : "Tambah IEM"}</h1>
+      <h1 className="page-title">{isEdit ? "Edit IEM" : "Tambah IEM"}</h1>
 
       {error && <div className="alert">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="form">
-        {field("name", "Nama IEM", { required: true })}
-        {field("brand", "Merek", { required: true })}
-        {field("driver", "Konfigurasi driver (contoh: 1DD + 2BA)")}
-        <ImageField
-          label="Gambar IEM"
-          folder="iem"
-          value={form.image_url}
-          onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
-        />
-        <ImageField
-          label="Gambar Frequency Response"
-          folder="iem-fr"
-          value={form.fr_image_url}
-          onChange={(url) => setForm((f) => ({ ...f, fr_image_url: url }))}
-        />
-        {area("description", "Deskripsi")}
-        {area("bass", "Bass")}
-        {area("midrange", "Midrange")}
-        {area("treble", "Treble")}
-        {area("technicalities", "Technicalities")}
-        {area("review", "Review")}
+      <form onSubmit={handleSubmit}>
+        <FormPanel title="Informasi produk">
+          <Field label="Nama IEM" value={form.name} onChange={set("name")} required />
+          <Field label="Merek" value={form.brand} onChange={set("brand")} required />
+          <Field
+            label="Konfigurasi driver"
+            hint="Contoh: 1DD + 2BA"
+            value={form.driver}
+            onChange={set("driver")}
+          />
+          <ImageField
+            label="Gambar IEM"
+            folder="iem"
+            value={form.image_url}
+            onChange={setValue("image_url")}
+          />
+          <Area label="Deskripsi" value={form.description} onChange={set("description")} />
+        </FormPanel>
 
-        <fieldset>
-          <legend>Harga dan kelas</legend>
-          {field("release_price", "Harga rilis (Rp)", {
-            type: "number",
-            min: 0,
-            step: 1,
-            inputMode: "numeric"
-          })}
-          <p className="muted hint">
-            Kelas saat rilis: <strong>{releaseTier || "-"}</strong>
-          </p>
-          {field("market_price", "Harga pasaran sekarang (Rp)", {
-            type: "number",
-            min: 0,
-            step: 1,
-            inputMode: "numeric"
-          })}
-          <p className="muted hint">
-            Kelas harga pasaran: <strong>{marketTier || "-"}</strong>
-          </p>
-        </fieldset>
+        <FormPanel
+          title="Harga dan kelas"
+          hint="Kelas dihitung otomatis dari harga. Kosongkan jika harga tidak diketahui."
+        >
+          <Field
+            label="Harga rilis (Rp)"
+            value={form.release_price}
+            onChange={set("release_price")}
+            hint={`Kelas saat rilis: ${tierOf(form.release_price) || "-"}`}
+            {...num}
+          />
+          <Field
+            label="Harga pasaran sekarang (Rp)"
+            value={form.market_price}
+            onChange={set("market_price")}
+            hint={`Kelas harga pasaran: ${tierOf(form.market_price) || "-"}`}
+            {...num}
+          />
+        </FormPanel>
 
-        {field("sensitivity", "Sensitivitas (contoh: 102 dB/mW)")}
-        {area("package_contents", "Isi paket penjualan (satu item per baris)", {
-          placeholder: "Earphone\nKabel\nEartips\nCarrying case"
-        })}
+        <FormPanel title="Spesifikasi teknis">
+          <Field
+            label="Impedance (Ω)"
+            value={form.impedance}
+            onChange={set("impedance")}
+            {...num}
+          />
+          <Field
+            label="Sensitivity"
+            hint="Tulis angka dan satuan, contoh: 102 dB/mW"
+            value={form.sensitivity}
+            onChange={set("sensitivity")}
+          />
+          <Field
+            label="Connector"
+            hint="Contoh: 0.78 mm 2-pin atau MMCX"
+            value={form.connector}
+            onChange={set("connector")}
+          />
+          <ChoiceChips
+            legend="Rekomendasi DAC/amp"
+            options={DAC_OPTIONS}
+            value={form.dac_need}
+            onChange={setValue("dac_need")}
+            hint="Berupa catatan rekomendasi. Pilihan “Tidak perlu” tidak ditampilkan di halaman detail."
+          />
+          <ImageField
+            label="Gambar Frequency Response (opsional)"
+            folder="iem-fr"
+            value={form.fr_image_url}
+            onChange={setValue("fr_image_url")}
+          />
+        </FormPanel>
 
-        <fieldset>
-          <legend>Kebutuhan DAC/amp</legend>
-          <div className="chips">
-            {DAC_OPTIONS.map((o) => (
-              <button
-                type="button"
-                key={o.value}
-                className={
-                  "chip dac pick dac-" +
-                  o.value +
-                  (form.dac_need === o.value ? " on" : "")
-                }
-                aria-pressed={form.dac_need === o.value}
-                onClick={() => setForm({ ...form, dac_need: o.value })}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <FormPanel
+          title="Karakteristik suara"
+          hint="Isi aspek yang relevan saja; yang kosong tidak akan ditampilkan."
+        >
+          <Area
+            label="Bass"
+            hint="Kuantitas, sub-bass, mid-bass, tekstur, punch, kontrol"
+            value={form.bass}
+            onChange={set("bass")}
+          />
+          <Area
+            label="Midrange"
+            hint="Ketebalan dan posisi vokal, timbre, detail"
+            value={form.midrange}
+            onChange={set("midrange")}
+          />
+          <Area
+            label="Treble"
+            hint="Kecerahan, ekstensi, energi, karakter cymbal"
+            value={form.treble}
+            onChange={set("treble")}
+          />
+          <Area
+            label="Technicalities"
+            hint="Detail retrieval, imaging, instrument separation, soundstage"
+            value={form.technicalities}
+            onChange={set("technicalities")}
+          />
+        </FormPanel>
 
-        <fieldset>
-          <legend>Tuning</legend>
-          {tunings.length === 0 && (
-            <p className="muted">Belum ada tuning. Tambahkan di menu Tuning.</p>
-          )}
-          <div className="chips">
-            {tunings.map((t) => (
-              <button
-                type="button"
-                key={t.id}
-                className={
-                  "chip tuning pick" + (form.tuning_ids.includes(t.id) ? " on" : "")
-                }
-                onClick={() => toggle("tuning_ids", t.id)}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <FormPanel title="Kelebihan dan kekurangan" hint="Satu poin per baris.">
+          <Area label="Kelebihan" value={form.pros} onChange={set("pros")} />
+          <Area label="Kekurangan" value={form.cons} onChange={set("cons")} />
+        </FormPanel>
 
-        <fieldset>
-          <legend>Genre yang cocok</legend>
-          {genres.length === 0 && (
-            <p className="muted">Belum ada genre. Tambahkan di menu Genre.</p>
-          )}
-          <div className="chips">
-            {genres.map((g) => (
-              <button
-                type="button"
-                key={g.id}
-                className={
-                  "chip genre pick" + (form.genre_ids.includes(g.id) ? " on" : "")
-                }
-                onClick={() => toggle("genre_ids", g.id)}
-              >
-                {g.name}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <FormPanel title="Isi paket dan review">
+          <Area
+            label="Isi paket penjualan"
+            hint="Satu item per baris"
+            placeholder={"Earphone\nKabel\nEartips\nCarrying case"}
+            value={form.package_contents}
+            onChange={set("package_contents")}
+          />
+          <Area
+            label="Review lengkap"
+            rows={5}
+            value={form.review}
+            onChange={set("review")}
+          />
+        </FormPanel>
 
-        <button className="btn primary" disabled={saving}>
-          {saving ? "Menyimpan..." : "Simpan"}
-        </button>
+        <FormPanel title="Kategori">
+          <ChipPicker
+            legend="Tuning"
+            kind="tuning"
+            items={tunings}
+            selected={form.tuning_ids}
+            onToggle={toggle("tuning_ids")}
+            emptyText="Belum ada tuning. Tambahkan di menu Tuning."
+          />
+          <ChipPicker
+            legend="Genre yang cocok"
+            kind="genre"
+            items={genres}
+            selected={form.genre_ids}
+            onToggle={toggle("genre_ids")}
+            emptyText="Belum ada genre. Tambahkan di menu Genre."
+          />
+        </FormPanel>
+
+        <div className="actions">
+          <button className="btn primary" disabled={saving}>
+            {saving ? "Menyimpan..." : "Simpan"}
+          </button>
+        </div>
       </form>
-    </section>
+    </div>
   );
 }

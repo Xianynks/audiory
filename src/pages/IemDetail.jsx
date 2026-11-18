@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { iemApi, categoryApi, errorMessage, FALLBACK_IMG } from "../api.js";
-import { tierOf, rupiah, dacLabel } from "../tier.js";
+import { iemApi, categoryApi, errorMessage } from "../api.js";
+import { dacLabel, dacNote, hasValue } from "../tier.js";
+import {
+  Panel,
+  ProductHero,
+  ChipRow,
+  SpecPanel,
+  PricePanel,
+  ListPanel,
+  TextPanel,
+  ProsConsPanel
+} from "../components/DetailParts.jsx";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
@@ -25,7 +35,11 @@ export default function IemDetail() {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!window.confirm(`Pindahkan "${iem.name}" ke sampah? Data bisa dipulihkan dari menu Sampah.`))
+    if (
+      !window.confirm(
+        `Pindahkan "${iem.name}" ke sampah? Data bisa dipulihkan dari menu Sampah.`
+      )
+    )
       return;
     try {
       await iemApi.remove(id);
@@ -37,7 +51,7 @@ export default function IemDetail() {
 
   if (error) {
     return (
-      <section>
+      <section className="detail">
         <div className="alert">{error}</div>
         <Link to="/" className="btn">
           Kembali ke katalog
@@ -49,117 +63,111 @@ export default function IemDetail() {
 
   const tuningList = tunings.filter((t) => (iem.tuning_ids || []).includes(t.id));
   const genreList = genres.filter((g) => (iem.genre_ids || []).includes(g.id));
-  const releaseTier = tierOf(iem.release_price);
-  const marketTier = tierOf(iem.market_price);
-  const packageItems = (iem.package_contents || "")
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
+
+  // Rekomendasi DAC/amp hanya ditampilkan jika memang disarankan
+  const dacRow =
+    iem.dac_need && iem.dac_need !== "tidak_perlu" ? (
+      <>
+        <strong>{dacLabel(iem.dac_need)}</strong>
+        <span className="note">{dacNote(iem.dac_need)}</span>
+      </>
+    ) : (
+      ""
+    );
+
+  const soundAspects = [
+    ["Bass", iem.bass],
+    ["Midrange", iem.midrange],
+    ["Treble", iem.treble],
+    ["Technicalities", iem.technicalities]
+  ].filter(([, text]) => hasValue(text));
 
   return (
-    <section className="detail">
+    <div className="detail">
       <Link to="/" className="back">
         &larr; Katalog
       </Link>
 
-      <img
-        className="hero"
-        src={iem.image_url || FALLBACK_IMG}
-        alt={iem.name}
-        onError={(e) => {
-          e.currentTarget.onerror = null;
-          e.currentTarget.src = FALLBACK_IMG;
-        }}
+      {/* 1. Product header */}
+      <section className="panel product-head">
+        <ProductHero src={iem.image_url} alt={iem.name} />
+        <div className="product-info">
+          <h1 className="product-name">{iem.name}</h1>
+          <p className="subtitle">
+            {iem.brand}
+            {hasValue(iem.driver) && ` · ${iem.driver}`}
+          </p>
+          <ChipRow tunings={tuningList} genres={genreList} />
+        </div>
+      </section>
+
+      {/* 2. Deskripsi */}
+      <TextPanel title="Deskripsi" text={iem.description} />
+
+      {/* 3. Harga dan kelas */}
+      <PricePanel release={iem.release_price} market={iem.market_price} />
+
+      {/* 4. Spesifikasi teknis */}
+      <SpecPanel
+        title="Spesifikasi teknis"
+        rows={[
+          ["Konfigurasi driver", iem.driver],
+          [
+            "Impedance",
+            hasValue(iem.impedance)
+              ? `${Number(iem.impedance).toLocaleString("id-ID")} Ω`
+              : ""
+          ],
+          ["Sensitivity", iem.sensitivity],
+          ["Connector", iem.connector],
+          [
+            "Frequency response",
+            hasValue(iem.fr_image_url) ? "Grafik tersedia di bawah" : ""
+          ],
+          ["Rekomendasi DAC/amp", dacRow]
+        ]}
       />
 
-      <h1>{iem.name}</h1>
-      <p className="muted">
-        {iem.brand} · {iem.driver}
-      </p>
-
-      <div className="chips">
-        {tuningList.map((t) => (
-          <span key={t.id} className="chip tuning">
-            {t.name}
-          </span>
-        ))}
-        {genreList.map((g) => (
-          <span key={g.id} className="chip genre">
-            {g.name}
-          </span>
-        ))}
-      </div>
-
-      <p>{iem.description}</p>
-
-      <h2>Harga dan kelas</h2>
-      <dl>
-        <dt>Harga rilis</dt>
-        <dd>
-          {rupiah(iem.release_price)}
-          {releaseTier && <span className="badge">{releaseTier}</span>}
-        </dd>
-        <dt>Harga pasaran sekarang</dt>
-        <dd>
-          {rupiah(iem.market_price)}
-          {marketTier && <span className="badge">{marketTier}</span>}
-        </dd>
-      </dl>
-
-      <h2>Spesifikasi</h2>
-      <dl>
-        <dt>Sensitivitas</dt>
-        <dd>{iem.sensitivity || "-"}</dd>
-        <dt>Kebutuhan DAC/amp</dt>
-        <dd>
-          <span className={"chip dac on dac-" + iem.dac_need}>
-            {dacLabel(iem.dac_need)}
-          </span>
-        </dd>
-      </dl>
-
-      <h2>Karakteristik suara</h2>
-      <dl>
-        <dt>Bass</dt>
-        <dd>{iem.bass || "-"}</dd>
-        <dt>Midrange</dt>
-        <dd>{iem.midrange || "-"}</dd>
-        <dt>Treble</dt>
-        <dd>{iem.treble || "-"}</dd>
-        <dt>Technicalities</dt>
-        <dd>{iem.technicalities || "-"}</dd>
-      </dl>
-
-      <h2>Frequency Response</h2>
-      {iem.fr_image_url ? (
-        <a href={iem.fr_image_url} target="_blank" rel="noreferrer">
-          <img
-            className="fr"
-            src={iem.fr_image_url}
-            alt={`Grafik frequency response ${iem.name}`}
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        </a>
-      ) : (
-        <p className="muted">Belum ada grafik frequency response.</p>
+      {/* 5. Karakteristik suara */}
+      {soundAspects.length > 0 && (
+        <Panel title="Karakteristik suara">
+          <div className="aspects">
+            {soundAspects.map(([label, text]) => (
+              <div key={label}>
+                <h3>{label}</h3>
+                <p className="prewrap">{text}</p>
+              </div>
+            ))}
+          </div>
+        </Panel>
       )}
 
-      <h2>Isi paket</h2>
-      {packageItems.length > 0 ? (
-        <ul className="plain">
-          {packageItems.map((item, i) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="muted">Belum ada data isi paket.</p>
+      {/* 6. Kelebihan dan kekurangan */}
+      <ProsConsPanel pros={iem.pros} cons={iem.cons} />
+
+      {/* 7. Frequency response graph */}
+      {hasValue(iem.fr_image_url) && (
+        <Panel title="Grafik frequency response">
+          <a href={iem.fr_image_url} target="_blank" rel="noreferrer">
+            <img
+              className="fr"
+              src={iem.fr_image_url}
+              alt={`Grafik frequency response ${iem.name}`}
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </a>
+          <p className="caption">Ketuk gambar untuk melihat ukuran penuh.</p>
+        </Panel>
       )}
 
-      <h2>Review</h2>
-      <p className="prewrap">{iem.review || "Belum ada review."}</p>
+      {/* 8. Isi paket */}
+      <ListPanel title="Isi paket" text={iem.package_contents} />
+
+      {/* 9. Review lengkap */}
+      <TextPanel title="Review lengkap" text={iem.review} />
 
       <div className="actions">
         <Link to={`/iem/${id}/edit`} className="btn primary">
@@ -169,6 +177,6 @@ export default function IemDetail() {
           Hapus
         </button>
       </div>
-    </section>
+    </div>
   );
 }

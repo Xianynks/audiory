@@ -1,22 +1,43 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { dacApi, categoryApi, errorMessage } from "../api.js";
-import { tierOf, JACK_OPTIONS } from "../tier.js";
+import { tierOf, JACK_OPTIONS, VOLUME_OPTIONS } from "../tier.js";
 import ImageField from "../components/ImageField.jsx";
+import {
+  FormPanel,
+  Field,
+  Area,
+  ChoiceChips,
+  ChipPicker
+} from "../components/FormParts.jsx";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
+
+const ADA_TIDAK = [
+  { value: true, label: "Ada" },
+  { value: false, label: "Tidak ada" }
+];
 
 const EMPTY = {
   name: "",
   brand: "",
   image_url: "",
-  fr_image_url: "",
   description: "",
   dac_chip: "",
+  amp_chip: "",
+  input_type: "",
   output_jack: "3.5mm",
-  power: "",
+  power_se: "",
+  power_balanced: "",
+  power_impedance: "",
+  volume_control: "",
+  playback_control: "",
+  detachable_cable: "",
   features: "",
+  sound_impression: "",
+  pros: "",
+  cons: "",
   review: "",
   release_price: "",
   market_price: "",
@@ -52,17 +73,15 @@ export default function DacForm() {
       .catch((err) => setError(errorMessage(err)));
   }, [id, isEdit]);
 
-  const setField = (key) => (e) => setForm({ ...form, [key]: e.target.value });
-
-  const toggle = (key, value) => {
-    const current = form[key];
-    setForm({
-      ...form,
-      [key]: current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value]
-    });
-  };
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const setValue = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
+  const toggle = (key) => (value) =>
+    setForm((f) => ({
+      ...f,
+      [key]: f[key].includes(value)
+        ? f[key].filter((v) => v !== value)
+        : [...f[key], value]
+    }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -79,144 +98,191 @@ export default function DacForm() {
     }
   };
 
-  const field = (key, label, props = {}) => (
-    <label className="field">
-      <span>{label}</span>
-      <input value={form[key]} onChange={setField(key)} {...props} />
-    </label>
-  );
-
-  const area = (key, label, props = {}) => (
-    <label className="field">
-      <span>{label}</span>
-      <textarea rows={3} value={form[key]} onChange={setField(key)} {...props} />
-    </label>
-  );
+  const num = { type: "number", min: 0, step: 1, inputMode: "numeric" };
 
   return (
-    <section>
+    <div className="detail">
       <Link to={isEdit ? `/dac/${id}` : "/"} className="back">
         &larr; Batal
       </Link>
-      <h1>{isEdit ? "Edit DAC" : "Tambah DAC"}</h1>
+      <h1 className="page-title">{isEdit ? "Edit DAC/Amp" : "Tambah DAC/Amp"}</h1>
 
       {error && <div className="alert">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="form">
-        {field("name", "Nama DAC", { required: true })}
-        {field("brand", "Merek", { required: true })}
-        <ImageField
-          label="Gambar DAC"
-          folder="dac"
-          value={form.image_url}
-          onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
-        />
-        <ImageField
-          label="Gambar Frequency Response"
-          folder="dac-fr"
-          value={form.fr_image_url}
-          onChange={(url) => setForm((f) => ({ ...f, fr_image_url: url }))}
-        />
-        {area("description", "Deskripsi")}
-        {field("dac_chip", "Chip DAC yang digunakan (contoh: ESS ES9038Q2M)")}
+      <form onSubmit={handleSubmit}>
+        <FormPanel title="Informasi produk">
+          <Field label="Nama DAC/Amp" value={form.name} onChange={set("name")} required />
+          <Field label="Merek" value={form.brand} onChange={set("brand")} required />
+          <ImageField
+            label="Gambar DAC/Amp"
+            folder="dac"
+            value={form.image_url}
+            onChange={setValue("image_url")}
+          />
+          <Area label="Deskripsi" value={form.description} onChange={set("description")} />
+        </FormPanel>
 
-        <fieldset>
-          <legend>Jack output</legend>
-          <div className="chips">
-            {JACK_OPTIONS.map((o) => (
-              <button
-                type="button"
-                key={o.value}
-                className={
-                  "chip jack pick" + (form.output_jack === o.value ? " on" : "")
-                }
-                aria-pressed={form.output_jack === o.value}
-                onClick={() => setForm({ ...form, output_jack: o.value })}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <FormPanel
+          title="Harga dan kelas"
+          hint="Kelas dihitung otomatis dari harga. Kosongkan jika harga tidak diketahui."
+        >
+          <Field
+            label="Harga rilis (Rp)"
+            value={form.release_price}
+            onChange={set("release_price")}
+            hint={`Kelas saat rilis: ${tierOf(form.release_price) || "-"}`}
+            {...num}
+          />
+          <Field
+            label="Harga pasaran sekarang (Rp)"
+            value={form.market_price}
+            onChange={set("market_price")}
+            hint={`Kelas harga pasaran: ${tierOf(form.market_price) || "-"}`}
+            {...num}
+          />
+        </FormPanel>
 
-        {field("power", "Power (contoh: 200mW @ 32Ω)")}
-        {area("features", "Fitur (satu fitur per baris)", {
-          placeholder: "Gain switch\nTombol volume\nDukungan DSD"
-        })}
-        {area("review", "Impresi suara", { rows: 5 })}
+        <FormPanel title="Spesifikasi teknis">
+          <Field
+            label="DAC chip"
+            hint="Contoh: Dual CS43131"
+            value={form.dac_chip}
+            onChange={set("dac_chip")}
+          />
+          <Field
+            label="Amplifier chip (opsional)"
+            hint="Isi jika informasinya diketahui"
+            value={form.amp_chip}
+            onChange={set("amp_chip")}
+          />
+          <Field
+            label="Input"
+            hint="Contoh: USB-C"
+            value={form.input_type}
+            onChange={set("input_type")}
+          />
+          <ChoiceChips
+            legend="Jack output"
+            options={JACK_OPTIONS}
+            value={form.output_jack}
+            onChange={setValue("output_jack")}
+          />
+        </FormPanel>
 
-        <fieldset>
-          <legend>Harga dan kelas</legend>
-          {field("release_price", "Harga rilis (Rp)", {
-            type: "number",
-            min: 0,
-            step: 1,
-            inputMode: "numeric"
-          })}
-          <p className="muted hint">
-            Kelas saat rilis: <strong>{tierOf(form.release_price) || "-"}</strong>
-          </p>
-          {field("market_price", "Harga pasaran sekarang (Rp)", {
-            type: "number",
-            min: 0,
-            step: 1,
-            inputMode: "numeric"
-          })}
-          <p className="muted hint">
-            Kelas harga pasaran: <strong>{tierOf(form.market_price) || "-"}</strong>
-          </p>
-        </fieldset>
+        <FormPanel
+          title="Output power"
+          hint="Isi angka dalam mW tanpa satuan. Kosongkan jika tidak diketahui, dan jangan mengisi angka perkiraan tanpa sumber."
+        >
+          <Field
+            label="Power SE / 3.5 mm (mW)"
+            value={form.power_se}
+            onChange={set("power_se")}
+            {...num}
+          />
+          <Field
+            label="Power balanced / 4.4 mm (mW)"
+            value={form.power_balanced}
+            onChange={set("power_balanced")}
+            {...num}
+          />
+          <Field
+            label="Impedansi uji (Ω)"
+            hint="Beban saat pengukuran sesuai sumber spesifikasi, contoh: 32. Catat impedansi aslinya bila bukan 32 Ω."
+            value={form.power_impedance}
+            onChange={set("power_impedance")}
+            {...num}
+          />
+        </FormPanel>
 
-        {area("package_contents", "Isi paket penjualan (satu item per baris)", {
-          placeholder: "DAC\nKabel USB-C\nKabel OTG"
-        })}
+        <FormPanel
+          title="Fitur"
+          hint="Klik pilihan yang sedang aktif untuk mengosongkannya."
+        >
+          <ChoiceChips
+            legend="Volume control"
+            options={VOLUME_OPTIONS}
+            value={form.volume_control}
+            onChange={setValue("volume_control")}
+            allowClear
+          />
+          <ChoiceChips
+            legend="Playback control"
+            options={ADA_TIDAK}
+            value={form.playback_control}
+            onChange={setValue("playback_control")}
+            allowClear
+          />
+          <ChoiceChips
+            legend="Detachable cable"
+            options={ADA_TIDAK}
+            value={form.detachable_cable}
+            onChange={setValue("detachable_cable")}
+            allowClear
+          />
+          <Area
+            label="Fitur lain"
+            hint="Satu fitur per baris"
+            placeholder={"Gain switch\nDukungan DSD"}
+            value={form.features}
+            onChange={set("features")}
+          />
+        </FormPanel>
 
-        <fieldset>
-          <legend>Tuning</legend>
-          {tunings.length === 0 && (
-            <p className="muted">Belum ada tuning. Tambahkan di menu Tuning.</p>
-          )}
-          <div className="chips">
-            {tunings.map((t) => (
-              <button
-                type="button"
-                key={t.id}
-                className={
-                  "chip tuning pick" + (form.tuning_ids.includes(t.id) ? " on" : "")
-                }
-                onClick={() => toggle("tuning_ids", t.id)}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <FormPanel title="Impresi suara" hint="Catatan karakter suara jika tersedia dari pengamatan atau pengujian.">
+          <Area
+            label="Impresi suara"
+            rows={5}
+            value={form.sound_impression}
+            onChange={set("sound_impression")}
+          />
+        </FormPanel>
 
-        <fieldset>
-          <legend>Genre yang cocok</legend>
-          {genres.length === 0 && (
-            <p className="muted">Belum ada genre. Tambahkan di menu Genre.</p>
-          )}
-          <div className="chips">
-            {genres.map((g) => (
-              <button
-                type="button"
-                key={g.id}
-                className={
-                  "chip genre pick" + (form.genre_ids.includes(g.id) ? " on" : "")
-                }
-                onClick={() => toggle("genre_ids", g.id)}
-              >
-                {g.name}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <FormPanel title="Kelebihan dan kekurangan" hint="Satu poin per baris.">
+          <Area label="Kelebihan" value={form.pros} onChange={set("pros")} />
+          <Area label="Kekurangan" value={form.cons} onChange={set("cons")} />
+        </FormPanel>
 
-        <button className="btn primary" disabled={saving}>
-          {saving ? "Menyimpan..." : "Simpan"}
-        </button>
+        <FormPanel title="Isi paket dan review">
+          <Area
+            label="Isi paket penjualan"
+            hint="Satu item per baris"
+            placeholder={"DAC/Amp\nKabel USB-C\nKabel OTG"}
+            value={form.package_contents}
+            onChange={set("package_contents")}
+          />
+          <Area
+            label="Review lengkap (opsional)"
+            rows={5}
+            value={form.review}
+            onChange={set("review")}
+          />
+        </FormPanel>
+
+        <FormPanel title="Kategori">
+          <ChipPicker
+            legend="Tuning"
+            kind="tuning"
+            items={tunings}
+            selected={form.tuning_ids}
+            onToggle={toggle("tuning_ids")}
+            emptyText="Belum ada tuning. Tambahkan di menu Tuning."
+          />
+          <ChipPicker
+            legend="Genre yang cocok"
+            kind="genre"
+            items={genres}
+            selected={form.genre_ids}
+            onToggle={toggle("genre_ids")}
+            emptyText="Belum ada genre. Tambahkan di menu Genre."
+          />
+        </FormPanel>
+
+        <div className="actions">
+          <button className="btn primary" disabled={saving}>
+            {saving ? "Menyimpan..." : "Simpan"}
+          </button>
+        </div>
       </form>
-    </section>
+    </div>
   );
 }

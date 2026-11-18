@@ -19,14 +19,19 @@ export const COLS = [
   "market_price",
   "package_contents",
   "sensitivity",
-  "dac_need"
+  "dac_need",
+  "impedance",
+  "connector",
+  "pros",
+  "cons"
 ];
 
-const PRICE_COLS = ["release_price", "market_price"];
+// Kolom bilangan bulat (kosong/tidak valid -> null)
+const INT_COLS = ["release_price", "market_price", "impedance"];
 export const DAC_OPTIONS = ["tidak_perlu", "disarankan", "wajib"];
 
-// Harga: kosong/tidak valid -> null, selain itu bilangan bulat >= 0
-export function toPrice(v) {
+// Bilangan bulat >= 0: kosong/tidak valid -> null
+export function toInt(v) {
   if (v === "" || v == null) return null;
   const n = Number(v);
   return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
@@ -36,7 +41,7 @@ export function toPrice(v) {
 export function values(body) {
   return COLS.map((c) => {
     const v = body[c];
-    if (PRICE_COLS.includes(c)) return toPrice(v);
+    if (INT_COLS.includes(c)) return toInt(v);
     if (c === "dac_need") return DAC_OPTIONS.includes(v) ? v : "tidak_perlu";
     return v ?? "";
   });

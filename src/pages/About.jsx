@@ -1,33 +1,39 @@
+import { SpecPanel, Panel } from "../components/DetailParts.jsx";
+
 export default function About() {
   return (
-    <section>
-      <h1>Tentang Audiory</h1>
-      <p>
-        Audiory adalah katalog informasi perangkat audio, dengan fokus awal pada
-        In-Ear Monitor (IEM). Setiap IEM dapat dikelompokkan berdasarkan tuning dan
-        genre musik yang cocok, lengkap dengan deskripsi, karakteristik suara, dan
-        review singkat.
-      </p>
+    <div className="detail">
+      <h1 className="page-title">Tentang Audiory</h1>
 
-      <h2>Fitur</h2>
-      <ul className="plain">
-        <li>Katalog IEM dengan halaman detail</li>
-        <li>Kategori Tuning dan Genre yang dapat ditambah, diubah, dan dihapus</li>
-        <li>Tambah, ubah, dan hapus data IEM beserta gambar</li>
-        <li>Dapat dipasang sebagai aplikasi (PWA)</li>
-      </ul>
+      <Panel title="Apa itu Audiory">
+        <p>
+          Audiory adalah katalog informasi perangkat audio, dengan fokus utama
+          pada In-Ear Monitor (IEM) dan pelengkapnya berupa DAC/Amp. Setiap
+          perangkat dapat dikelompokkan berdasarkan tuning dan genre musik yang
+          cocok, lengkap dengan deskripsi, spesifikasi, karakteristik suara, dan
+          review.
+        </p>
+      </Panel>
 
-      <h2>Pembuat</h2>
-      <dl>
-        <dt>Nama</dt>
-        <dd>Mikail Hikam Altiyar</dd>
-        <dt>NIM</dt>
-        <dd>21120124130102</dd>
-        <dt>Teknologi</dt>
-        <dd>React, Vite, Axios, PWA (JavaScript)</dd>
-        <dt>Versi</dt>
-        <dd>2.1.0</dd>
-      </dl>
-    </section>
+      <Panel title="Fitur">
+        <ul className="list">
+          <li>Katalog IEM dan DAC/Amp dengan halaman detail</li>
+          <li>Kategori Tuning dan Genre yang dapat ditambah, diubah, dan dihapus</li>
+          <li>Tambah, ubah, dan hapus data beserta gambar dan grafik frequency response</li>
+          <li>Hapus aman: data masuk ke Sampah dan bisa dipulihkan</li>
+          <li>Dapat dipasang sebagai aplikasi (PWA)</li>
+        </ul>
+      </Panel>
+
+      <SpecPanel
+        title="Pembuat"
+        rows={[
+          ["Nama", "Mikail Hikam Altiyar"],
+          ["NIM", "21120124130102"],
+          ["Teknologi", "React, Vite, Axios, PWA (JavaScript)"],
+          ["Versi", "1.1.0"]
+        ]}
+      />
+    </div>
   );
 }

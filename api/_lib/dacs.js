@@ -1,30 +1,58 @@
-import { toPrice } from "./db.js";
+import { toInt } from "./db.js";
 
-// Kolom tabel dacs yang diisi dari form (urutan = urutan parameter SQL)
+// Kolom tabel dacs yang diisi dari form (urutan = urutan parameter SQL).
+// `sound_impression` = Impresi Suara, `review` = Review Lengkap.
 export const DAC_COLS = [
   "name",
   "brand",
   "image_url",
-  "fr_image_url",
   "description",
   "dac_chip",
+  "amp_chip",
+  "input_type",
   "output_jack",
-  "power",
+  "power_se",
+  "power_balanced",
+  "power_impedance",
+  "volume_control",
+  "playback_control",
+  "detachable_cable",
   "features",
+  "sound_impression",
+  "pros",
+  "cons",
   "review",
   "release_price",
   "market_price",
   "package_contents"
 ];
 
-const PRICE_COLS = ["release_price", "market_price"];
+const INT_COLS = [
+  "power_se",
+  "power_balanced",
+  "power_impedance",
+  "release_price",
+  "market_price"
+];
+const BOOL_COLS = ["playback_control", "detachable_cable"];
+
 export const JACK_OPTIONS = ["3.5mm", "4.4mm", "keduanya"];
+export const VOLUME_OPTIONS = ["independent", "system"];
+
+// true/false/kosong -> true/false/null
+const toBool = (v) => {
+  if (v === true || v === "true") return true;
+  if (v === false || v === "false") return false;
+  return null;
+};
 
 export function dacValues(body) {
   return DAC_COLS.map((c) => {
     const v = body[c];
-    if (PRICE_COLS.includes(c)) return toPrice(v);
+    if (INT_COLS.includes(c)) return toInt(v);
+    if (BOOL_COLS.includes(c)) return toBool(v);
     if (c === "output_jack") return JACK_OPTIONS.includes(v) ? v : "3.5mm";
+    if (c === "volume_control") return VOLUME_OPTIONS.includes(v) ? v : null;
     return v ?? "";
   });
 }

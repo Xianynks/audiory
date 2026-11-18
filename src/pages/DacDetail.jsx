@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { dacApi, categoryApi, errorMessage, FALLBACK_IMG } from "../api.js";
-import { tierOf, rupiah, jackLabel } from "../tier.js";
+import { dacApi, categoryApi, errorMessage } from "../api.js";
+import { jackLabel, volumeLabel, formatPower, lines, hasValue } from "../tier.js";
+import {
+  Panel,
+  ProductHero,
+  ChipRow,
+  SpecPanel,
+  PricePanel,
+  ListPanel,
+  TextPanel,
+  ProsConsPanel
+} from "../components/DetailParts.jsx";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
-
-const lines = (text) =>
-  (text || "")
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
 
 export default function DacDetail() {
   const { id } = useParams();
@@ -47,7 +51,7 @@ export default function DacDetail() {
 
   if (error) {
     return (
-      <section>
+      <section className="detail">
         <div className="alert">{error}</div>
         <Link to="/" className="btn">
           Kembali ke katalog
@@ -59,110 +63,82 @@ export default function DacDetail() {
 
   const tuningList = tunings.filter((t) => (dac.tuning_ids || []).includes(t.id));
   const genreList = genres.filter((g) => (dac.genre_ids || []).includes(g.id));
-  const releaseTier = tierOf(dac.release_price);
-  const marketTier = tierOf(dac.market_price);
-  const featureItems = lines(dac.features);
-  const packageItems = lines(dac.package_contents);
+
+  // Fitur: kontrol volume, playback control, detachable cable, dan fitur lain
+  const featureItems = [
+    hasValue(dac.volume_control) ? volumeLabel(dac.volume_control) : "",
+    dac.playback_control === true ? "Playback control" : "",
+    dac.detachable_cable === true ? "Detachable cable" : "",
+    ...lines(dac.features)
+  ].filter(Boolean);
 
   return (
-    <section className="detail">
+    <div className="detail">
       <Link to="/" className="back">
         &larr; Katalog
       </Link>
 
-      <img
-        className="hero"
-        src={dac.image_url || FALLBACK_IMG}
-        alt={dac.name}
-        onError={(e) => {
-          e.currentTarget.onerror = null;
-          e.currentTarget.src = FALLBACK_IMG;
-        }}
+      {/* 1. Product header */}
+      <section className="panel product-head">
+        <ProductHero src={dac.image_url} alt={dac.name} />
+        <div className="product-info">
+          <h1 className="product-name">{dac.name}</h1>
+          <p className="subtitle">{dac.brand}</p>
+          <ChipRow
+            tunings={tuningList}
+            genres={genreList}
+            extra={<span className="chip device">DAC/Amp</span>}
+          />
+        </div>
+      </section>
+
+      {/* 2. Deskripsi */}
+      <TextPanel title="Deskripsi" text={dac.description} />
+
+      {/* 3. Harga dan kelas */}
+      <PricePanel release={dac.release_price} market={dac.market_price} />
+
+      {/* 4. Spesifikasi teknis */}
+      <SpecPanel
+        title="Spesifikasi teknis"
+        rows={[
+          ["DAC chip", dac.dac_chip],
+          ["Amplifier chip", dac.amp_chip],
+          ["Input", dac.input_type],
+          ["Output", jackLabel(dac.output_jack)],
+          [
+            "Daya output 3.5 mm",
+            formatPower(dac.power_se, dac.power_impedance)
+          ],
+          [
+            "Daya output 4.4 mm",
+            formatPower(dac.power_balanced, dac.power_impedance)
+          ]
+        ]}
       />
 
-      <h1>{dac.name}</h1>
-      <p className="muted">{dac.brand}</p>
-
-      <div className="chips">
-        {tuningList.map((t) => (
-          <span key={t.id} className="chip tuning">
-            {t.name}
-          </span>
-        ))}
-        {genreList.map((g) => (
-          <span key={g.id} className="chip genre">
-            {g.name}
-          </span>
-        ))}
-      </div>
-
-      <p>{dac.description}</p>
-
-      <h2>Harga dan kelas</h2>
-      <dl>
-        <dt>Harga rilis</dt>
-        <dd>
-          {rupiah(dac.release_price)}
-          {releaseTier && <span className="badge">{releaseTier}</span>}
-        </dd>
-        <dt>Harga pasaran sekarang</dt>
-        <dd>
-          {rupiah(dac.market_price)}
-          {marketTier && <span className="badge">{marketTier}</span>}
-        </dd>
-      </dl>
-
-      <h2>Spesifikasi</h2>
-      <dl>
-        <dt>Chip DAC</dt>
-        <dd>{dac.dac_chip || "-"}</dd>
-        <dt>Jack output</dt>
-        <dd>{jackLabel(dac.output_jack)}</dd>
-        <dt>Power</dt>
-        <dd>{dac.power || "-"}</dd>
-      </dl>
-
-      <h2>Fitur</h2>
-      {featureItems.length > 0 ? (
-        <ul className="plain">
-          {featureItems.map((item, i) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="muted">Belum ada data fitur.</p>
+      {/* 5. Fitur */}
+      {featureItems.length > 0 && (
+        <Panel title="Fitur">
+          <ul className="list">
+            {featureItems.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </Panel>
       )}
 
-      <h2>Frequency Response</h2>
-      {dac.fr_image_url ? (
-        <a href={dac.fr_image_url} target="_blank" rel="noreferrer">
-          <img
-            className="fr"
-            src={dac.fr_image_url}
-            alt={`Grafik frequency response ${dac.name}`}
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        </a>
-      ) : (
-        <p className="muted">Belum ada grafik frequency response.</p>
-      )}
+      {/* 6. Impresi suara */}
+      <TextPanel title="Impresi suara" text={dac.sound_impression} />
 
-      <h2>Isi paket</h2>
-      {packageItems.length > 0 ? (
-        <ul className="plain">
-          {packageItems.map((item, i) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="muted">Belum ada data isi paket.</p>
-      )}
+      {/* 7. Kelebihan dan kekurangan */}
+      <ProsConsPanel pros={dac.pros} cons={dac.cons} />
 
-      <h2>Impresi suara</h2>
-      <p className="prewrap">{dac.review || "Belum ada impresi suara."}</p>
+      {/* 8. Isi paket */}
+      <ListPanel title="Isi paket" text={dac.package_contents} />
+
+      {/* 9. Review lengkap */}
+      <TextPanel title="Review lengkap" text={dac.review} />
 
       <div className="actions">
         <Link to={`/dac/${id}/edit`} className="btn primary">
@@ -172,6 +148,6 @@ export default function DacDetail() {
           Hapus
         </button>
       </div>
-    </section>
+    </div>
   );
 }

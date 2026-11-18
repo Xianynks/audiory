@@ -1,24 +1,38 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import {
+  IconCatalog,
+  IconTuning,
+  IconGenre,
+  IconTrash,
+  IconAbout
+} from "./icons.jsx";
 
 const items = [
-  { to: "/", label: "Katalog", end: true },
-  { to: "/tuning", label: "Tuning" },
-  { to: "/genre", label: "Genre" },
-  { to: "/sampah", label: "Sampah" },
-  { to: "/about", label: "About" }
+  { to: "/", label: "Katalog", end: true, Icon: IconCatalog },
+  { to: "/tuning", label: "Tuning", Icon: IconTuning },
+  { to: "/genre", label: "Genre", Icon: IconGenre },
+  { to: "/sampah", label: "Sampah", Icon: IconTrash },
+  { to: "/about", label: "About", Icon: IconAbout }
 ];
 
 export default function BottomNav() {
+  const { pathname } = useLocation();
+  // Halaman detail/form IEM dan DAC tetap menandai tab Katalog
+  const inCatalog = pathname.startsWith("/iem") || pathname.startsWith("/dac");
+
   return (
     <nav className="bottomnav" aria-label="Navigasi utama">
-      {items.map((it) => (
+      {items.map(({ to, label, end, Icon }) => (
         <NavLink
-          key={it.to}
-          to={it.to}
-          end={it.end}
-          className={({ isActive }) => "navitem" + (isActive ? " active" : "")}
+          key={to}
+          to={to}
+          end={end}
+          className={({ isActive }) =>
+            "navitem" + (isActive || (to === "/" && inCatalog) ? " active" : "")
+          }
         >
-          {it.label}
+          <Icon />
+          <span>{label}</span>
         </NavLink>
       ))}
     </nav>

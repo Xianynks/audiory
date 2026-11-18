@@ -21,14 +21,22 @@ export const rupiah = (n) =>
     ? "-"
     : "Rp " + Number(n).toLocaleString("id-ID");
 
+// Kebutuhan DAC/amp pada IEM disajikan sebagai catatan rekomendasi, bukan klaim wajib.
 export const DAC_OPTIONS = [
   { value: "tidak_perlu", label: "Tidak perlu" },
   { value: "disarankan", label: "Disarankan" },
-  { value: "wajib", label: "Wajib" }
+  { value: "wajib", label: "Sangat disarankan" }
 ];
 
 export const dacLabel = (value) =>
   DAC_OPTIONS.find((o) => o.value === value)?.label ?? "Tidak perlu";
+
+export const dacNote = (value) =>
+  ({
+    tidak_perlu: "Bisa dipakai langsung dari perangkat tanpa DAC/amp tambahan.",
+    disarankan: "Hasil lebih baik dengan DAC/amp tambahan.",
+    wajib: "Sangat disarankan memakai DAC/amp tambahan agar performanya optimal."
+  })[value] ?? "";
 
 export const JACK_OPTIONS = [
   { value: "3.5mm", label: "3.5mm" },
@@ -38,3 +46,29 @@ export const JACK_OPTIONS = [
 
 export const jackLabel = (value) =>
   JACK_OPTIONS.find((o) => o.value === value)?.label ?? "-";
+
+export const VOLUME_OPTIONS = [
+  { value: "independent", label: "Independent volume control" },
+  { value: "system", label: "System volume" }
+];
+
+export const volumeLabel = (value) =>
+  VOLUME_OPTIONS.find((o) => o.value === value)?.label ?? "";
+
+// Daya output: angka mW dan impedansi uji terpisah, contoh "100 mW @ 32 Ω"
+export function formatPower(mw, ohm) {
+  if (mw === null || mw === undefined || mw === "") return "";
+  const base = `${Number(mw).toLocaleString("id-ID")} mW`;
+  return ohm === null || ohm === undefined || ohm === ""
+    ? base
+    : `${base} @ ${Number(ohm).toLocaleString("id-ID")} Ω`;
+}
+
+// Teks multibaris -> daftar baris tidak kosong
+export const lines = (text) =>
+  (text || "")
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+export const hasValue = (v) => v !== null && v !== undefined && String(v).trim() !== "";
