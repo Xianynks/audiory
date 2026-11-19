@@ -72,3 +72,11 @@ export const lines = (text) =>
     .filter(Boolean);
 
 export const hasValue = (v) => v !== null && v !== undefined && String(v).trim() !== "";
+
+// Pilihan connector kabel IEM
+export const CONNECTOR_OPTIONS = [
+  { value: "2-Pin 0.78 mm", label: "2-Pin 0.78 mm" },
+  { value: "QDC Type-C", label: "QDC Type-C" },
+  { value: "QDC Type-B", label: "QDC Type-B" },
+  { value: "MMCX", label: "MMCX" }
+];

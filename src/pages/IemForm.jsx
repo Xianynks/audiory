@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { iemApi, categoryApi, errorMessage } from "../api.js";
-import { tierOf, DAC_OPTIONS } from "../tier.js";
+import { tierOf, DAC_OPTIONS, CONNECTOR_OPTIONS } from "../tier.js";
 import ImageField from "../components/ImageField.jsx";
 import {
   FormPanel,
@@ -92,6 +92,9 @@ export default function IemForm() {
   };
 
   const num = { type: "number", min: 0, step: 1, inputMode: "numeric" };
+  // Data lama yang diketik bebas dan tidak cocok dengan salah satu pilihan
+  const legacyConnector =
+    form.connector !== "" && !CONNECTOR_OPTIONS.some((o) => o.value === form.connector);
 
   return (
     <div className="detail">
@@ -154,11 +157,17 @@ export default function IemForm() {
             value={form.sensitivity}
             onChange={set("sensitivity")}
           />
-          <Field
-            label="Connector"
-            hint="Contoh: 0.78 mm 2-pin atau MMCX"
+          <ChoiceChips
+            legend="Connector"
+            options={CONNECTOR_OPTIONS}
             value={form.connector}
-            onChange={set("connector")}
+            onChange={setValue("connector")}
+            allowClear
+            hint={
+              legacyConnector
+                ? `Nilai lama "${form.connector}" tidak ada di pilihan. Pilih salah satu opsi untuk menggantinya.`
+                : "Opsional. Klik pilihan yang sedang aktif untuk mengosongkannya."
+            }
           />
           <ChoiceChips
             legend="Rekomendasi DAC/amp"
