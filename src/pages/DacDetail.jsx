@@ -12,6 +12,7 @@ import {
   TextPanel,
   ProsConsPanel
 } from "../components/DetailParts.jsx";
+import CommentSection from "../components/CommentSection.jsx";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
@@ -139,6 +140,9 @@ export default function DacDetail() {
 
       {/* 9. Review lengkap */}
       <TextPanel title="Review lengkap" text={dac.review} />
+
+      {/* Diskusi pengunjung */}
+      <CommentSection type="dac" id={id} />
 
       <div className="actions">
         <Link to={`/dac/${id}/edit`} className="btn primary">

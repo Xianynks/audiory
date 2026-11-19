@@ -12,6 +12,7 @@ import {
   TextPanel,
   ProsConsPanel
 } from "../components/DetailParts.jsx";
+import CommentSection from "../components/CommentSection.jsx";
 
 const tuningApi = categoryApi("tunings");
 const genreApi = categoryApi("genres");
@@ -168,6 +169,9 @@ export default function IemDetail() {
 
       {/* 9. Review lengkap */}
       <TextPanel title="Review lengkap" text={iem.review} />
+
+      {/* Diskusi pengunjung */}
+      <CommentSection type="iem" id={id} />
 
       <div className="actions">
         <Link to={`/iem/${id}/edit`} className="btn primary">

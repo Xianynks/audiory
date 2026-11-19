@@ -688,3 +688,84 @@ textarea:focus {
     transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
   }
 }
+
+/* ===== Tambahan: diskusi pengunjung dan hapus permanen ===== */
+.catlist li {
+  flex-wrap: wrap;
+}
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.comment-intro {
+  margin-bottom: 16px;
+}
+.comment-form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.comment-form.compact {
+  margin: 12px 0 0;
+  background: var(--surface);
+}
+.comment-form .actions {
+  margin-top: 0;
+}
+.comment-meta {
+  display: grid;
+  gap: 12px;
+}
+@media (min-width: 600px) {
+  .comment-meta {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+}
+
+.comment-list {
+  display: grid;
+  gap: 12px;
+}
+.comment {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.comment.is-reply {
+  padding: 12px;
+  background: var(--bg);
+}
+.comment-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+.comment-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--indigo);
+}
+.comment-head time {
+  margin: 0;
+}
+.replies {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--line);
+}
+.comment > .btn.small {
+  margin-top: 10px;
+}

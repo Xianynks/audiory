@@ -33,7 +33,15 @@ export const dacApi = {
 export const trashApi = {
   list: () => api.get("/trash").then(unwrap),
   // type: "iems" | "dacs" | "tunings" | "genres"
-  restore: (type, id) => api.post("/trash", { type, id }).then(unwrap)
+  restore: (type, id) => api.post("/trash", { type, id }).then(unwrap),
+  // hapus permanen, hanya untuk data yang sudah ada di sampah
+  purge: (type, id) => api.delete("/trash", { params: { type, id } }).then(unwrap)
+};
+
+// type: "iem" | "dac"
+export const commentApi = {
+  list: (type, id) => api.get("/comments", { params: { type, id } }).then(unwrap),
+  create: (type, id, data) => api.post("/comments", { type, id, ...data }).then(unwrap)
 };
 
 export const errorMessage = (err) =>

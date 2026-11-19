@@ -47,13 +47,36 @@ export default function Trash() {
     }
   };
 
+  const purge = async (type, item) => {
+    const extra =
+      type === "iems" || type === "dacs"
+        ? " Diskusi pada item ini juga ikut terhapus."
+        : " Hubungannya dengan IEM/DAC yang ada di sampah juga dilepas.";
+    if (
+      !window.confirm(
+        `Hapus permanen "${item.name}"? Tindakan ini tidak bisa dibatalkan.${extra}`
+      )
+    )
+      return;
+    setError("");
+    setInfo("");
+    try {
+      await trashApi.purge(type, item.id);
+      setInfo(`"${item.name}" dihapus permanen.`);
+      load();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  };
+
   const total = SECTIONS.reduce((n, s) => n + data[s.key].length, 0);
 
   return (
     <section>
       <h1>Sampah</h1>
       <p className="muted">
-        Data yang dihapus disimpan di sini dan bisa dipulihkan kapan saja.
+        Data yang dihapus disimpan di sini dan bisa dipulihkan. Hapus permanen
+        menghilangkannya selamanya.
       </p>
 
       {error && <div className="alert">{error}</div>}
@@ -76,12 +99,20 @@ export default function Trash() {
                       {item.brand ? ` · ${item.brand}` : ""}
                       <span className="muted"> (dihapus {formatDate(item.deleted_at)})</span>
                     </span>
-                    <button
-                      className="btn small primary"
-                      onClick={() => restore(s.key, item)}
-                    >
-                      Pulihkan
-                    </button>
+                    <span className="row-actions">
+                      <button
+                        className="btn small primary"
+                        onClick={() => restore(s.key, item)}
+                      >
+                        Pulihkan
+                      </button>
+                      <button
+                        className="btn small danger"
+                        onClick={() => purge(s.key, item)}
+                      >
+                        Hapus permanen
+                      </button>
+                    </span>
                   </li>
                 ))}
               </ul>
