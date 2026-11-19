@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import IemCard from "../components/IemCard.jsx";
 import DacCard from "../components/DacCard.jsx";
 import { categoryApi, iemApi, dacApi, errorMessage } from "../api.js";
+import { useAuth } from "../auth.jsx";
 
 export default function CategoryPage({ type, title }) {
   const api = categoryApi(type);
+  const { moderator } = useAuth();
   // field relasi pada IEM/DAC: tunings -> tuning_ids, genres -> genre_ids
   const relKey = type === "tunings" ? "tuning_ids" : "genre_ids";
 
@@ -86,26 +88,28 @@ export default function CategoryPage({ type, title }) {
 
       {error && <div className="alert">{error}</div>}
 
-      <form className="inline-form" onSubmit={handleSubmit}>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={editingId ? `Ubah nama ${title}` : `Nama ${title} baru`}
-        />
-        <button className="btn primary">{editingId ? "Simpan" : "Tambah"}</button>
-        {editingId && (
-          <button
-            type="button"
-            className="btn"
-            onClick={() => {
-              setEditingId(null);
-              setName("");
-            }}
-          >
-            Batal
-          </button>
-        )}
-      </form>
+      {moderator && (
+        <form className="inline-form" onSubmit={handleSubmit}>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={editingId ? `Ubah nama ${title}` : `Nama ${title} baru`}
+          />
+          <button className="btn primary">{editingId ? "Simpan" : "Tambah"}</button>
+          {editingId && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setEditingId(null);
+                setName("");
+              }}
+            >
+              Batal
+            </button>
+          )}
+        </form>
+      )}
 
       <ul className="catlist">
         {categories.map((c) => (
@@ -113,18 +117,22 @@ export default function CategoryPage({ type, title }) {
             <button className="catname" onClick={() => setSelected(c.id)}>
               {c.name} <span className="muted">({countOf(c.id)})</span>
             </button>
-            <button
-              className="btn small"
-              onClick={() => {
-                setEditingId(c.id);
-                setName(c.name);
-              }}
-            >
-              Ubah
-            </button>
-            <button className="btn small danger" onClick={() => handleDelete(c)}>
-              Hapus
-            </button>
+            {moderator && (
+              <>
+                <button
+                  className="btn small"
+                  onClick={() => {
+                    setEditingId(c.id);
+                    setName(c.name);
+                  }}
+                >
+                  Ubah
+                </button>
+                <button className="btn small danger" onClick={() => handleDelete(c)}>
+                  Hapus
+                </button>
+              </>
+            )}
           </li>
         ))}
       </ul>

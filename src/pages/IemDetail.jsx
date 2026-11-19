@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../auth.jsx";
 import { iemApi, categoryApi, errorMessage } from "../api.js";
 import { dacLabel, dacNote, hasValue } from "../tier.js";
 import {
@@ -20,6 +21,7 @@ const genreApi = categoryApi("genres");
 export default function IemDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { moderator } = useAuth();
   const [iem, setIem] = useState(null);
   const [tunings, setTunings] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -173,14 +175,16 @@ export default function IemDetail() {
       {/* Diskusi pengunjung */}
       <CommentSection type="iem" id={id} />
 
-      <div className="actions">
-        <Link to={`/iem/${id}/edit`} className="btn primary">
-          Edit
-        </Link>
-        <button className="btn danger" onClick={handleDelete}>
-          Hapus
-        </button>
-      </div>
+      {moderator && (
+        <div className="actions">
+          <Link to={`/iem/${id}/edit`} className="btn primary">
+            Edit
+          </Link>
+          <button className="btn danger" onClick={handleDelete}>
+            Hapus
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -769,3 +769,47 @@ textarea:focus {
 .comment > .btn.small {
   margin-top: 10px;
 }
+
+/* ===== Tambahan: login moderator ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mod-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.link-btn,
+a.link-btn {
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.link-btn:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+.detail.narrow {
+  max-width: 460px;
+}
+.comment-del {
+  margin-left: auto;
+}

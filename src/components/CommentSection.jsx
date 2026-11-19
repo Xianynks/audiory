@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { commentApi, errorMessage } from "../api.js";
 import { Panel } from "./DetailParts.jsx";
+import { useAuth } from "../auth.jsx";
 import { ChoiceChips } from "./FormParts.jsx";
 
 const STATUS_OPTIONS = [
@@ -112,7 +113,7 @@ function CommentForm({ onSubmit, onCancel, compact = false }) {
   );
 }
 
-function CommentItem({ c, reply = false, children }) {
+function CommentItem({ c, reply = false, onDelete, children }) {
   return (
     <article className={"comment" + (reply ? " is-reply" : "")}>
       <header className="comment-head">
@@ -121,6 +122,11 @@ function CommentItem({ c, reply = false, children }) {
         <time className="caption" dateTime={c.created_at}>
           {formatDate(c.created_at)}
         </time>
+        {onDelete && (
+          <button className="btn small danger comment-del" onClick={onDelete}>
+            Hapus
+          </button>
+        )}
       </header>
       <p className="prewrap">{c.body}</p>
       {children}
@@ -134,6 +140,7 @@ export default function CommentSection({ type, id }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [replyTo, setReplyTo] = useState(null);
+  const { moderator } = useAuth();
 
   const load = useCallback(async () => {
     try {
@@ -160,6 +167,23 @@ export default function CommentSection({ type, id }) {
     [comments]
   );
 
+  // Hanya moderator: pindahkan komentar/balasan ke sampah (bisa dipulihkan)
+  const remove = async (c, replyCount) => {
+    const extra = replyCount > 0 ? ` ${replyCount} balasan di bawahnya ikut disembunyikan.` : "";
+    if (
+      !window.confirm(
+        `Pindahkan komentar dari ${c.author_name} ke sampah?${extra} Bisa dipulihkan dari menu Sampah.`
+      )
+    )
+      return;
+    try {
+      await commentApi.remove(c.id);
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  };
+
   const send = (parentId) => async (data) => {
     await commentApi.create(type, id, { ...data, parent_id: parentId });
     setReplyTo(null);
@@ -183,11 +207,20 @@ export default function CommentSection({ type, id }) {
 
       <div className="comment-list">
         {threads.map((c) => (
-          <CommentItem key={c.id} c={c}>
+          <CommentItem
+            key={c.id}
+            c={c}
+            onDelete={moderator ? () => remove(c, c.replies.length) : undefined}
+          >
             {c.replies.length > 0 && (
               <div className="replies">
                 {c.replies.map((r) => (
-                  <CommentItem key={r.id} c={r} reply />
+                  <CommentItem
+                    key={r.id}
+                    c={r}
+                    reply
+                    onDelete={moderator ? () => remove(r, 0) : undefined}
+                  />
                 ))}
               </div>
             )}

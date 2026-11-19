@@ -1,5 +1,5 @@
-import crypto from "node:crypto";
 import { sql } from "../_lib/db.js";
+import { requireModerator, ipHash } from "../_lib/auth.js";
 
 // Komentar menempel pada IEM atau DAC (nilai tetap, bukan input langsung)
 const TARGET = {
@@ -14,20 +14,7 @@ const BODY_MAX = 1000;
 const RATE_MAX = 5; // jumlah komentar maksimal ...
 const RATE_WINDOW_MIN = 5; // ... dalam jangka waktu ini (menit) per pengunjung
 
-// Hash IP hanya untuk membatasi kecepatan kirim; IP asli tidak disimpan.
-function ipHash(req) {
-  const ip =
-    String(req.headers?.["x-forwarded-for"] || "").split(",")[0].trim() ||
-    req.socket?.remoteAddress ||
-    "unknown";
-  return crypto
-    .createHash("sha256")
-    .update(ip + (process.env.COMMENT_SALT || "audiory"))
-    .digest("hex")
-    .slice(0, 32);
-}
-
-const COLUMNS = "id, parent_id, author_name, author_status, body, created_at";
+const COLUMNS = "c.id, c.parent_id, c.author_name, c.author_status, c.body, c.created_at";
 
 export default async function handler(req, res) {
   try {
@@ -39,8 +26,11 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: "Data tidak valid." });
       }
       const rows = await sql.query(
-        `SELECT ${COLUMNS} FROM comments WHERE ${t.col} = $1
-          ORDER BY created_at ASC, id ASC LIMIT 500`,
+        `SELECT ${COLUMNS} FROM comments c
+          WHERE c.${t.col} = $1 AND c.deleted_at IS NULL
+            AND (c.parent_id IS NULL OR EXISTS (
+                  SELECT 1 FROM comments p WHERE p.id = c.parent_id AND p.deleted_at IS NULL))
+          ORDER BY c.created_at ASC, c.id ASC LIMIT 500`,
         [id]
       );
       return res.status(200).json(rows);
@@ -78,7 +68,7 @@ export default async function handler(req, res) {
         parentId = Number(b.parent_id);
         const parent = Number.isInteger(parentId)
           ? await sql.query(
-              `SELECT parent_id FROM comments WHERE id = $1 AND ${t.col} = $2`,
+              `SELECT parent_id FROM comments WHERE id = $1 AND ${t.col} = $2 AND deleted_at IS NULL`,
               [parentId, id]
             )
           : [];
@@ -106,10 +96,27 @@ export default async function handler(req, res) {
       const [row] = await sql.query(
         `INSERT INTO comments (${t.col}, parent_id, author_name, author_status, body, ip_hash)
          VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING ${COLUMNS}`,
+         RETURNING id, parent_id, author_name, author_status, body, created_at`,
         [id, parentId, name, status, text, hash]
       );
       return res.status(201).json(row);
+    }
+
+    if (req.method === "DELETE") {
+      // /api/comments?id=12  (hanya moderator) -> pindahkan ke sampah
+      if (!requireModerator(req, res)) return;
+      const id = Number(req.query.id);
+      if (!Number.isInteger(id)) {
+        return res.status(400).json({ message: "ID tidak valid." });
+      }
+      const rows = await sql.query(
+        "UPDATE comments SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id",
+        [id]
+      );
+      if (!rows.length) {
+        return res.status(404).json({ message: "Komentar tidak ditemukan." });
+      }
+      return res.status(200).json({ message: "Komentar dipindahkan ke sampah." });
     }
 
     res.status(405).json({ message: "Method tidak didukung." });

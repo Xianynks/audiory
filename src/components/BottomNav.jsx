@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "../auth.jsx";
 import {
   IconCatalog,
   IconTuning,
@@ -17,12 +18,15 @@ const items = [
 
 export default function BottomNav() {
   const { pathname } = useLocation();
+  const { moderator } = useAuth();
   // Halaman detail/form IEM dan DAC tetap menandai tab Katalog
   const inCatalog = pathname.startsWith("/iem") || pathname.startsWith("/dac");
 
   return (
     <nav className="bottomnav" aria-label="Navigasi utama">
-      {items.map(({ to, label, end, Icon }) => (
+      {items
+        .filter((it) => it.to !== "/sampah" || moderator)
+        .map(({ to, label, end, Icon }) => (
         <NavLink
           key={to}
           to={to}

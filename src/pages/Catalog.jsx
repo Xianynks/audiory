@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import IemCard from "../components/IemCard.jsx";
 import DacCard from "../components/DacCard.jsx";
 import useCatalog from "../useCatalog.js";
+import { useAuth } from "../auth.jsx";
 
 export default function Catalog() {
   const { iems, dacs, tunings, genres, loading, error, reload } = useCatalog();
+  const { moderator } = useAuth();
   const [q, setQ] = useState("");
 
   const match = (x) =>
@@ -17,14 +19,16 @@ export default function Catalog() {
     <section>
       <div className="page-head">
         <h1>Katalog IEM</h1>
-        <div className="head-actions">
-          <Link to="/dac/baru" className="btn primary">
-            Tambah DAC
-          </Link>
-          <Link to="/iem/baru" className="btn primary">
-            Tambah IEM
-          </Link>
-        </div>
+        {moderator && (
+          <div className="head-actions">
+            <Link to="/dac/baru" className="btn primary">
+              Tambah DAC
+            </Link>
+            <Link to="/iem/baru" className="btn primary">
+              Tambah IEM
+            </Link>
+          </div>
+        )}
       </div>
 
       <input
@@ -46,7 +50,9 @@ export default function Catalog() {
       )}
 
       {!loading && !error && iemList.length === 0 && (
-        <p className="muted">Belum ada IEM. Tambahkan IEM pertama Anda.</p>
+        <p className="muted">
+          {moderator ? "Belum ada IEM. Tambahkan IEM pertama Anda." : "Belum ada IEM."}
+        </p>
       )}
       <div className="grid">
         {iemList.map((iem) => (

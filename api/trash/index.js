@@ -1,7 +1,14 @@
 import { sql } from "../_lib/db.js";
+import { requireModerator } from "../_lib/auth.js";
 
 // Tabel yang boleh dipulihkan / dihapus permanen (whitelist, bukan input langsung)
-const TABLES = { iems: "IEM", dacs: "DAC", tunings: "Tuning", genres: "Genre" };
+const TABLES = {
+  iems: "IEM",
+  dacs: "DAC",
+  tunings: "Tuning",
+  genres: "Genre",
+  comments: "Komentar"
+};
 
 // Tabel penghubung milik tiap kategori. Saat kategori dihapus permanen,
 // hubungannya dengan IEM/DAC (yang masih ada di sampah) ikut dilepas.
@@ -17,9 +24,11 @@ const LINKS = {
 };
 
 export default async function handler(req, res) {
+  // Seluruh isi sampah hanya untuk moderator
+  if (!requireModerator(req, res)) return;
   try {
     if (req.method === "GET") {
-      const [iems, dacs, tunings, genres] = await Promise.all([
+      const [iems, dacs, tunings, genres, comments] = await Promise.all([
         sql.query(
           "SELECT id, name, brand, deleted_at FROM iems WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC"
         ),
@@ -31,9 +40,26 @@ export default async function handler(req, res) {
         ),
         sql.query(
           "SELECT id, name, deleted_at FROM genres WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC"
+        ),
+        sql.query(
+          `SELECT c.id, c.author_name, c.body, c.parent_id, c.deleted_at,
+                  CASE WHEN c.iem_id IS NOT NULL THEN 'IEM' ELSE 'DAC' END AS target_label,
+                  COALESCE(i.name, d.name) AS target_name
+             FROM comments c
+             LEFT JOIN iems i ON i.id = c.iem_id
+             LEFT JOIN dacs d ON d.id = c.dac_id
+            WHERE c.deleted_at IS NOT NULL
+            ORDER BY c.deleted_at DESC`
         )
       ]);
-      return res.status(200).json({ iems, dacs, tunings, genres });
+      // Komentar ditampilkan dengan format yang sama seperti item lain (name + brand)
+      const commentItems = comments.map((c) => ({
+        id: c.id,
+        name: `${c.author_name}: ${String(c.body).replace(/\s+/g, " ").slice(0, 70)}`,
+        brand: `${c.parent_id ? "Balasan" : "Komentar"} pada ${c.target_label} ${c.target_name}`,
+        deleted_at: c.deleted_at
+      }));
+      return res.status(200).json({ iems, dacs, tunings, genres, comments: commentItems });
     }
 
     if (req.method === "POST") {
@@ -62,6 +88,18 @@ export default async function handler(req, res) {
       const label = TABLES[type];
       if (!label || !Number.isInteger(id)) {
         return res.status(400).json({ message: "Data tidak valid." });
+      }
+
+      if (type === "comments") {
+        // Balasan pada komentar ini ikut terhapus (ON DELETE CASCADE)
+        const rows = await sql.query(
+          "DELETE FROM comments WHERE id = $1 AND deleted_at IS NOT NULL RETURNING id",
+          [id]
+        );
+        if (!rows.length) {
+          return res.status(404).json({ message: "Komentar tidak ada di sampah." });
+        }
+        return res.status(200).json({ message: "Komentar dihapus permanen." });
       }
 
       if (type === "iems" || type === "dacs") {

@@ -6,33 +6,45 @@ const api = axios.create({
 
 const unwrap = (res) => res.data;
 
+// Jika sesi moderator habis (401 dari endpoint selain login), beri tahu AuthProvider
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const url = String(err?.config?.url || "");
+    if (err?.response?.status === 401 && !url.startsWith("/auth")) {
+      window.dispatchEvent(new Event("audiory:unauthorized"));
+    }
+    return Promise.reject(err);
+  }
+);
+
 export const iemApi = {
   list: () => api.get("/iems").then(unwrap),
-  get: (id) => api.get(`/iems/${id}`).then(unwrap),
+  get: (id) => api.get("/iems", { params: { id } }).then(unwrap),
   create: (data) => api.post("/iems", data).then(unwrap),
-  update: (id, data) => api.put(`/iems/${id}`, data).then(unwrap),
-  remove: (id) => api.delete(`/iems/${id}`).then(unwrap)
+  update: (id, data) => api.put("/iems", data, { params: { id } }).then(unwrap),
+  remove: (id) => api.delete("/iems", { params: { id } }).then(unwrap)
 };
 
 // type: "tunings" atau "genres"
 export const categoryApi = (type) => ({
   list: () => api.get(`/${type}`).then(unwrap),
   create: (data) => api.post(`/${type}`, data).then(unwrap),
-  update: (id, data) => api.put(`/${type}/${id}`, data).then(unwrap),
-  remove: (id) => api.delete(`/${type}/${id}`).then(unwrap)
+  update: (id, data) => api.put(`/${type}`, data, { params: { id } }).then(unwrap),
+  remove: (id) => api.delete(`/${type}`, { params: { id } }).then(unwrap)
 });
 
 export const dacApi = {
   list: () => api.get("/dacs").then(unwrap),
-  get: (id) => api.get(`/dacs/${id}`).then(unwrap),
+  get: (id) => api.get("/dacs", { params: { id } }).then(unwrap),
   create: (data) => api.post("/dacs", data).then(unwrap),
-  update: (id, data) => api.put(`/dacs/${id}`, data).then(unwrap),
-  remove: (id) => api.delete(`/dacs/${id}`).then(unwrap)
+  update: (id, data) => api.put("/dacs", data, { params: { id } }).then(unwrap),
+  remove: (id) => api.delete("/dacs", { params: { id } }).then(unwrap)
 };
 
 export const trashApi = {
   list: () => api.get("/trash").then(unwrap),
-  // type: "iems" | "dacs" | "tunings" | "genres"
+  // type: "iems" | "dacs" | "tunings" | "genres" | "comments"
   restore: (type, id) => api.post("/trash", { type, id }).then(unwrap),
   // hapus permanen, hanya untuk data yang sudah ada di sampah
   purge: (type, id) => api.delete("/trash", { params: { type, id } }).then(unwrap)
@@ -41,7 +53,16 @@ export const trashApi = {
 // type: "iem" | "dac"
 export const commentApi = {
   list: (type, id) => api.get("/comments", { params: { type, id } }).then(unwrap),
-  create: (type, id, data) => api.post("/comments", { type, id, ...data }).then(unwrap)
+  create: (type, id, data) => api.post("/comments", { type, id, ...data }).then(unwrap),
+  // hanya moderator: pindahkan komentar/balasan ke sampah
+  remove: (id) => api.delete("/comments", { params: { id } }).then(unwrap)
+};
+
+// Login moderator (sesi disimpan server dalam cookie HttpOnly)
+export const authApi = {
+  me: () => api.get("/auth").then(unwrap),
+  login: (username, password) => api.post("/auth", { username, password }).then(unwrap),
+  logout: () => api.delete("/auth").then(unwrap)
 };
 
 export const errorMessage = (err) =>

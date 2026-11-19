@@ -1,15 +1,17 @@
 import { handleUpload } from "@vercel/blob/client";
+import { requireModerator } from "./_lib/auth.js";
 
 // Membuat token upload sekali pakai. File dikirim langsung dari browser ke
 // Vercel Blob, jadi tidak terkena batas ukuran body 4,5 MB milik Vercel Functions.
 //
-// Catatan: aplikasi ini belum punya login, sehingga siapa pun yang tahu alamat
-// endpoint ini bisa mengunggah gambar. Batas jenis dan ukuran file di bawah
-// membatasi penyalahgunaan.
+// Hanya moderator yang login yang bisa mengunggah. Batas jenis dan ukuran file
+// di bawah menambah lapisan pengaman.
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method tidak didukung." });
   }
+  // Hanya moderator yang boleh mengunggah gambar
+  if (!requireModerator(req, res)) return;
   try {
     const result = await handleUpload({
       body: req.body,

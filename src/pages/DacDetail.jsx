@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../auth.jsx";
 import { dacApi, categoryApi, errorMessage } from "../api.js";
 import { jackLabel, volumeLabel, formatPower, lines, hasValue } from "../tier.js";
 import {
@@ -20,6 +21,7 @@ const genreApi = categoryApi("genres");
 export default function DacDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { moderator } = useAuth();
   const [dac, setDac] = useState(null);
   const [tunings, setTunings] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -144,14 +146,16 @@ export default function DacDetail() {
       {/* Diskusi pengunjung */}
       <CommentSection type="dac" id={id} />
 
-      <div className="actions">
-        <Link to={`/dac/${id}/edit`} className="btn primary">
-          Edit
-        </Link>
-        <button className="btn danger" onClick={handleDelete}>
-          Hapus
-        </button>
-      </div>
+      {moderator && (
+        <div className="actions">
+          <Link to={`/dac/${id}/edit`} className="btn primary">
+            Edit
+          </Link>
+          <button className="btn danger" onClick={handleDelete}>
+            Hapus
+          </button>
+        </div>
+      )}
     </div>
   );
 }

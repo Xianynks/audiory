@@ -5,7 +5,8 @@ const SECTIONS = [
   { key: "iems", title: "IEM" },
   { key: "dacs", title: "DAC" },
   { key: "tunings", title: "Tuning" },
-  { key: "genres", title: "Genre" }
+  { key: "genres", title: "Genre" },
+  { key: "comments", title: "Komentar dan balasan" }
 ];
 
 const formatDate = (d) =>
@@ -16,7 +17,7 @@ const formatDate = (d) =>
   });
 
 export default function Trash() {
-  const [data, setData] = useState({ iems: [], dacs: [], tunings: [], genres: [] });
+  const [data, setData] = useState({ iems: [], dacs: [], tunings: [], genres: [], comments: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -51,7 +52,9 @@ export default function Trash() {
     const extra =
       type === "iems" || type === "dacs"
         ? " Diskusi pada item ini juga ikut terhapus."
-        : " Hubungannya dengan IEM/DAC yang ada di sampah juga dilepas.";
+        : type === "comments"
+          ? " Balasan pada komentar ini juga ikut terhapus."
+          : " Hubungannya dengan IEM/DAC yang ada di sampah juga dilepas.";
     if (
       !window.confirm(
         `Hapus permanen "${item.name}"? Tindakan ini tidak bisa dibatalkan.${extra}`
