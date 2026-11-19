@@ -31,7 +31,7 @@ export default function About() {
           ["Nama", "Mikail Hikam Altiyar"],
           ["NIM", "21120124130102"],
           ["Teknologi", "React, Vite, Axios, PWA (JavaScript)"],
-          ["Versi", "3.0.0"]
+          ["Versi", "3.1.1"]
         ]}
       />
     </div>
