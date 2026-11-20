@@ -4,6 +4,7 @@ import {
   IconCatalog,
   IconTuning,
   IconGenre,
+  IconDiscussion,
   IconTrash,
   IconAbout
 } from "./icons.jsx";
@@ -12,6 +13,7 @@ const items = [
   { to: "/", label: "Katalog", end: true, Icon: IconCatalog },
   { to: "/tuning", label: "Tuning", Icon: IconTuning },
   { to: "/genre", label: "Genre", Icon: IconGenre },
+  { to: "/diskusi", label: "Diskusi", Icon: IconDiscussion },
   { to: "/sampah", label: "Sampah", Icon: IconTrash },
   { to: "/about", label: "About", Icon: IconAbout }
 ];

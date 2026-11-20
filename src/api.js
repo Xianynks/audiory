@@ -53,6 +53,8 @@ export const trashApi = {
 // type: "iem" | "dac"
 export const commentApi = {
   list: (type, id) => api.get("/comments", { params: { type, id } }).then(unwrap),
+  // komentar terbaru dari semua item -> { items, hasMore }
+  recent: (limit) => api.get("/comments", { params: { recent: 1, limit } }).then(unwrap),
   create: (type, id, data) => api.post("/comments", { type, id, ...data }).then(unwrap),
   // hanya moderator: pindahkan komentar/balasan ke sampah
   remove: (id) => api.delete("/comments", { params: { id } }).then(unwrap)

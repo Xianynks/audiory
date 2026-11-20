@@ -813,3 +813,29 @@ a.link-btn {
 .comment-del {
   margin-left: auto;
 }
+
+/* ===== Tambahan: halaman Diskusi dan sorotan komentar ===== */
+.intro {
+  margin: 6px 0 16px;
+}
+.comment.hl {
+  border-color: var(--primary);
+  animation: hl-flash 3s ease-out;
+}
+@keyframes hl-flash {
+  from {
+    background-color: #e7e7fc;
+    box-shadow: 0 0 0 3px rgba(47, 47, 228, 0.35);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .comment.hl {
+    animation: none;
+  }
+}
+/* Dua tab tambahan pada moderator (6 tab): beri sedikit ruang */
+@media (max-width: 380px) {
+  .navitem {
+    font-size: 10px;
+  }
+}

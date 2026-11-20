@@ -18,6 +18,33 @@ const COLUMNS = "c.id, c.parent_id, c.author_name, c.author_status, c.body, c.cr
 
 export default async function handler(req, res) {
   try {
+    if (req.method === "GET" && req.query.recent !== undefined) {
+      // Komentar dan balasan terbaru dari semua IEM/DAC (halaman Diskusi):
+      // /api/comments?recent=1&limit=30  (terbuka untuk semua pengunjung)
+      const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 30, 1), 100);
+      const rows = await sql.query(
+        `SELECT c.id, c.parent_id, c.author_name, c.author_status, c.body, c.created_at,
+                CASE WHEN c.iem_id IS NOT NULL THEN 'iem' ELSE 'dac' END AS target_type,
+                COALESCE(c.iem_id, c.dac_id) AS target_id,
+                COALESCE(i.name, d.name) AS target_name
+           FROM comments c
+           LEFT JOIN iems i ON i.id = c.iem_id AND i.deleted_at IS NULL
+           LEFT JOIN dacs d ON d.id = c.dac_id AND d.deleted_at IS NULL
+          WHERE c.deleted_at IS NULL
+            AND COALESCE(i.id, d.id) IS NOT NULL
+            AND (c.parent_id IS NULL OR EXISTS (
+                  SELECT 1 FROM comments p WHERE p.id = c.parent_id AND p.deleted_at IS NULL))
+          ORDER BY c.created_at DESC, c.id DESC
+          LIMIT $1`,
+        [limit + 1]
+      );
+      const items = rows.slice(0, limit).map(({ body, ...c }) => {
+        const text = String(body).replace(/\s+/g, " ").trim();
+        return { ...c, snippet: text.length > 120 ? text.slice(0, 120) + "…" : text };
+      });
+      return res.status(200).json({ items, hasMore: rows.length > limit });
+    }
+
     if (req.method === "GET") {
       // /api/comments?type=iem&id=5
       const t = TARGET[req.query.type];

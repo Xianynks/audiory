@@ -7,6 +7,7 @@ import IemForm from "./pages/IemForm.jsx";
 import DacDetail from "./pages/DacDetail.jsx";
 import DacForm from "./pages/DacForm.jsx";
 import CategoryPage from "./pages/CategoryPage.jsx";
+import Discussions from "./pages/Discussions.jsx";
 import Trash from "./pages/Trash.jsx";
 import About from "./pages/About.jsx";
 import Login from "./pages/Login.jsx";
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/dac/:id/edit" element={mod(<DacForm />)} />
             <Route path="/tuning" element={<CategoryPage type="tunings" title="Tuning" />} />
             <Route path="/genre" element={<CategoryPage type="genres" title="Genre" />} />
+            <Route path="/diskusi" element={<Discussions />} />
             <Route path="/sampah" element={mod(<Trash />)} />
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />

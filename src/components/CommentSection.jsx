@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { commentApi, errorMessage } from "../api.js";
 import { Panel } from "./DetailParts.jsx";
 import { useAuth } from "../auth.jsx";
@@ -113,9 +114,12 @@ function CommentForm({ onSubmit, onCancel, compact = false }) {
   );
 }
 
-function CommentItem({ c, reply = false, onDelete, children }) {
+function CommentItem({ c, reply = false, onDelete, highlight = false, children }) {
   return (
-    <article className={"comment" + (reply ? " is-reply" : "")}>
+    <article
+      id={`komentar-${c.id}`}
+      className={"comment" + (reply ? " is-reply" : "") + (highlight ? " hl" : "")}
+    >
       <header className="comment-head">
         <strong className="comment-name">{c.author_name}</strong>
         {c.author_status && <span className="badge">{statusLabel(c.author_status)}</span>}
@@ -142,6 +146,11 @@ export default function CommentSection({ type, id }) {
   const [replyTo, setReplyTo] = useState(null);
   const { moderator } = useAuth();
 
+  // Tautan dari halaman Diskusi: /iem/5#komentar-12 -> gulir ke komentar itu lalu sorot sebentar
+  const { hash } = useLocation();
+  const targetId = /^#komentar-(\d+)$/.exec(hash)?.[1] ?? null;
+  const [flashId, setFlashId] = useState(null);
+
   const load = useCallback(async () => {
     try {
       setComments(await commentApi.list(type, id));
@@ -156,6 +165,16 @@ export default function CommentSection({ type, id }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (loading || !targetId) return undefined;
+    const el = document.getElementById(`komentar-${targetId}`);
+    if (!el) return undefined; // komentar sudah dihapus atau tidak ada
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setFlashId(targetId);
+    const timer = setTimeout(() => setFlashId(null), 3000);
+    return () => clearTimeout(timer);
+  }, [loading, targetId]);
 
   // Komentar utama terbaru di atas; balasan berurutan dari yang terlama
   const threads = useMemo(
@@ -210,6 +229,7 @@ export default function CommentSection({ type, id }) {
           <CommentItem
             key={c.id}
             c={c}
+            highlight={String(c.id) === flashId}
             onDelete={moderator ? () => remove(c, c.replies.length) : undefined}
           >
             {c.replies.length > 0 && (
@@ -219,6 +239,7 @@ export default function CommentSection({ type, id }) {
                     key={r.id}
                     c={r}
                     reply
+                    highlight={String(r.id) === flashId}
                     onDelete={moderator ? () => remove(r, 0) : undefined}
                   />
                 ))}
